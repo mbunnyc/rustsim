@@ -1,4 +1,6 @@
 use core::f32;
+use sdl2::Sdl;
+use sdl2::pixels::PixelFormatEnum;
 
 const SCREEN_WIDTH: usize = 640;
 const SCREEN_HEIGHT: usize = 480;
@@ -68,6 +70,45 @@ impl Vector3 {
             Vector3::new(v.x / len, v.y / len, v.z / len)
         } else {
             Vector3::new(0.0, 0.0, 0.0)
+        }
+    }
+}
+
+struct Rect {
+    pos: Vector2,
+    size: Vector2,
+}
+
+impl Rect {
+    pub fn clamped_to(&self, limit: Rect) -> Rect {
+        let mut size_diff = Vector2::new(0.0, 0.0);
+        Rect {
+            pos: Vector2::new(
+                if self.pos.x < limit.pos.x {
+                    size_diff.x = self.pos.x + limit.pos.x;
+                    limit.pos.x
+                } else {
+                    self.pos.x
+                },
+                if self.pos.y < limit.pos.y {
+                    size_diff.y = self.pos.y + limit.pos.y;
+                    limit.pos.y
+                } else {
+                    self.pos.y
+                },
+            ),
+            size: Vector2::new(
+                if self.size.x < limit.size.x {
+                    limit.size.x + size_diff.x
+                } else {
+                    self.size.x + size_diff.x
+                },
+                if self.size.y < limit.size.y {
+                    limit.size.y + size_diff.y
+                } else {
+                    self.size.y + size_diff.y
+                },
+            ),
         }
     }
 }
@@ -254,7 +295,100 @@ impl Camera {
 }
 
 struct Screen {
-    pixels: [Color; SCREEN_PIXEL_COUNT],
+    pub pixels: Vec<Color>,
+}
+
+impl Screen {
+    pub fn copy(src: Rect, dst: Rect, to: &mut Screen) {}
+}
+
+trait ScreenRenderer {
+    fn start(&self, screen: &mut Screen, game: &dyn Game);
+}
+
+struct SDLRenderer;
+
+trait Game {
+    fn update_tick(&mut self);
+    fn render_tick(&self, screen: &mut Screen);
+}
+
+struct TestGame;
+
+impl Game for TestGame {
+    fn update_tick(&mut self) {}
+    fn render_tick(&self, screen: &mut Screen) {
+        let cam = Camera::new();
+        let tri = Triangle {
+            v1: Vertex {
+                pos: Vector3::new(0.0, 0.0, 0.0),
+                texture_coord: Vector2::new(0.0, 0.0),
+                color: WHITE,
+            },
+            v2: Vertex {
+                pos: Vector3::new(0.0, 0.0, 0.0),
+                texture_coord: Vector2::new(0.0, 0.0),
+                color: WHITE,
+            },
+            v3: Vertex {
+                pos: Vector3::new(0.0, 0.0, 0.0),
+                texture_coord: Vector2::new(0.0, 0.0),
+                color: WHITE,
+            },
+        };
+        let sh = DummyPassthruShader;
+        screen.draw_triangle(&tri, &cam, &sh);
+    }
+}
+
+impl ScreenRenderer for SDLRenderer {
+    fn start(&self, screen: &mut Screen, game: &dyn Game) {
+        let sdl_context: Sdl = sdl2::init().unwrap();
+        let video_subsystem = sdl_context.video().unwrap();
+        let window = video_subsystem
+            .window("SDL Window", SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32)
+            .position_centered()
+            .build()
+            .unwrap();
+        let mut canvas = window.into_canvas().build().unwrap();
+        let texture_creator = canvas.texture_creator();
+        let mut texture = texture_creator
+            .create_texture_streaming(PixelFormatEnum::ARGB8888, 640, 480)
+            .unwrap();
+        let mut event_pump = sdl_context.event_pump().unwrap();
+
+        'running: loop {
+            game.render_tick(screen);
+            texture
+                .with_lock(None, |pixels: &mut [u8], pitch: usize| {
+                    for y in 0..SCREEN_HEIGHT {
+                        for x in 0..SCREEN_WIDTH {
+                            let i = y * SCREEN_WIDTH + x;
+                            let Color { r, g, b, a } = screen.pixels[i];
+                            let offset = y * pitch + x * 4;
+                            pixels[offset] = b as u8;
+                            pixels[offset + 1] = g as u8;
+                            pixels[offset + 2] = r as u8;
+                            pixels[offset + 3] = a as u8;
+                        }
+                    }
+                })
+                .unwrap();
+
+            canvas.clear();
+            canvas
+                .copy(&texture, None, Some(sdl2::rect::Rect::new(0, 0, 640, 480)))
+                .unwrap();
+            canvas.present();
+
+            for event in event_pump.poll_iter() {
+                use sdl2::event::Event;
+                if let Event::Quit { .. } = event {
+                    break 'running;
+                }
+            }
+        }
+    }
 }
 
 struct PixelPlacement {
@@ -267,9 +401,9 @@ trait PixelShader {
     fn process(&self, pp: &PixelPlacement) -> PixelPlacement;
 }
 
-struct DummyShader;
+struct DummyPassthruShader;
 
-impl PixelShader for DummyShader {
+impl PixelShader for DummyPassthruShader {
     fn process(&self, pp: &PixelPlacement) -> PixelPlacement {
         PixelPlacement {
             x: pp.x,
@@ -282,7 +416,7 @@ impl PixelShader for DummyShader {
 impl Screen {
     pub fn new() -> Screen {
         Screen {
-            pixels: [WHITE; SCREEN_PIXEL_COUNT],
+            pixels: vec![WHITE; SCREEN_PIXEL_COUNT],
         }
     }
 
@@ -296,27 +430,13 @@ impl Screen {
     }
 }
 
+fn start_game(screen: &mut Screen, renderer: &dyn ScreenRenderer, game: &mut dyn Game) {
+    renderer.start(screen, game);
+}
+
 fn main() {
-    let mut s = Screen::new();
-    //s.draw_pixel(0, 0, Color::new(255, 0, 0, 255));
-    let cam = Camera::new();
-    let tri = Triangle {
-        v1: Vertex {
-            pos: Vector3::new(0.0, 0.0, 0.0),
-            texture_coord: Vector2::new(0.0, 0.0),
-            color: WHITE,
-        },
-        v2: Vertex {
-            pos: Vector3::new(0.0, 0.0, 0.0),
-            texture_coord: Vector2::new(0.0, 0.0),
-            color: WHITE,
-        },
-        v3: Vertex {
-            pos: Vector3::new(0.0, 0.0, 0.0),
-            texture_coord: Vector2::new(0.0, 0.0),
-            color: WHITE,
-        },
-    };
-    let sh = DummyShader;
-    s.draw_triangle(&tri, &cam, &sh);
+    let mut screen = Screen::new();
+    let renderer = SDLRenderer;
+    let mut game = TestGame;
+    start_game(&mut screen, &renderer, &mut game);
 }
