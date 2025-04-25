@@ -152,19 +152,13 @@ impl Triangle {
 
         for y in min_y..=max_y {
             for x in min_x..=max_x {
-                // Convert to floating point for barycentric calculations
-                let px = x as f32 + 0.5; // Center of pixel
+                let px = x as f32 + 0.5;
                 let py = y as f32 + 0.5;
 
-                // Calculate barycentric coordinates
                 let (alpha, beta, gamma) = self.barycentric_coords(px, py);
 
-                // Check if the point is inside the triangle
                 if alpha >= 0.0 && beta >= 0.0 && gamma >= 0.0 {
-                    // Interpolate color based on barycentric coords
                     let color = self.interpolate_color(alpha, beta, gamma);
-
-                    // Draw the pixel
                     let pixel = PixelPlacement { x, y, color };
                     screen.draw_pixel(&pixel, shader);
                 }
@@ -172,7 +166,6 @@ impl Triangle {
         }
     }
 
-    // Calculate barycentric coordinates for a point (px, py)
     fn barycentric_coords(&self, px: f32, py: f32) -> (f32, f32, f32) {
         let x1 = self.v1.pos.x;
         let y1 = self.v1.pos.y;
@@ -183,7 +176,6 @@ impl Triangle {
 
         let area = 0.5 * ((x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1)).abs();
 
-        // Calculate sub-triangle areas
         let alpha = 0.5 * ((x2 - px) * (y3 - py) - (x3 - px) * (y2 - py)).abs() / area;
         let beta = 0.5 * ((x1 - px) * (y3 - py) - (x3 - px) * (y1 - py)).abs() / area;
         let gamma = 1.0 - alpha - beta;
@@ -191,7 +183,6 @@ impl Triangle {
         (alpha, beta, gamma)
     }
 
-    // Interpolate color based on barycentric coordinates
     fn interpolate_color(&self, alpha: f32, beta: f32, gamma: f32) -> Color {
         let r = (self.v1.color.r as f32 * alpha
             + self.v2.color.r as f32 * beta
@@ -207,73 +198,58 @@ impl Triangle {
 
         Color { r, g, b, a: 255 }
     }
-    // Apply perspective projection using the camera and then fill the triangle
+
     pub fn project_and_fill(&self, screen: &mut Screen, camera: &Camera, shader: &dyn PixelShader) {
-        // Create a projected triangle (after perspective transform)
         let projected_triangle = self.with_applied_perspective(camera, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-        // Fill the projected triangle
         projected_triangle.fill(screen, shader);
     }
 
-    // Apply perspective projection to triangle vertices
     fn with_applied_perspective(
         &self,
         camera: &Camera,
         screen_width: usize,
         screen_height: usize,
     ) -> Triangle {
-        // Calculate view direction and basic camera vectors
         let forward = Vector3::normalize(&Vector3::subtract(&camera.pointing_at, &camera.pos));
         let right = Vector3::normalize(&Vector3::cross(&forward, &Vector3::new(0.0, 1.0, 0.0)));
         let up = Vector3::cross(&right, &forward);
 
-        // Calculate aspect ratio
         let aspect_ratio = screen_width as f32 / screen_height as f32;
 
-        // Convert camera FOV to radians and calculate projection factors
         let fov_radians = camera.fov.to_radians();
         let tan_half_fov = (fov_radians / 2.0).tan();
 
-        // Function to project a single vertex
         let project_vertex = |vertex: &Vertex| -> Vertex {
-            // Translate vertex position relative to camera
             let relative_pos = Vector3::subtract(&vertex.pos, &camera.pos);
 
-            // Convert to camera space
             let camera_x = Vector3::dot(&relative_pos, &right);
             let camera_y = Vector3::dot(&relative_pos, &up);
             let camera_z = Vector3::dot(&relative_pos, &forward);
 
-            // Apply perspective projection (note: z needs to be positive for points in front of camera)
             let z_factor = if camera_z > 0.01 {
                 1.0 / camera_z
             } else {
                 100.0
-            }; // Avoid division by zero
+            };
 
-            // Scale by FOV and aspect ratio
             let screen_x = (camera_x / (tan_half_fov * camera_z)) * 0.5 + 0.5;
             let screen_y = (camera_y / (tan_half_fov * camera_z / aspect_ratio)) * 0.5 + 0.5;
 
-            // Convert normalized coordinates to screen coordinates
             let screen_x = screen_x * screen_width as f32;
-            let screen_y = (1.0 - screen_y) * screen_height as f32; // Flip Y axis
+            let screen_y = (1.0 - screen_y) * screen_height as f32;
 
-            // Create a new vertex with projected position
             Vertex::new(
-                Vector3::new(screen_x, screen_y, z_factor), // Store z_factor for depth testing
+                Vector3::new(screen_x, screen_y, z_factor),
                 vertex.texture_coord.clone(),
                 vertex.color.clone(),
             )
         };
 
-        // Project each vertex
         let projected_v1 = project_vertex(&self.v1);
         let projected_v2 = project_vertex(&self.v2);
         let projected_v3 = project_vertex(&self.v3);
 
-        // Return a new triangle with projected vertices
         Triangle::new(projected_v1, projected_v2, projected_v3)
     }
 }
@@ -302,11 +278,11 @@ impl Screen {
     pub fn copy(src: Rect, dst: Rect, to: &mut Screen) {}
 }
 
-trait ScreenRenderer {
-    fn start(&self, screen: &mut Screen, game: &dyn Game);
+trait Window {
+    fn start(&self, screen: &mut Screen, game: &mut dyn Game);
 }
 
-struct SDLRenderer;
+struct SDL2Window;
 
 trait Game {
     fn update_tick(&mut self);
@@ -318,6 +294,7 @@ struct TestGame;
 impl Game for TestGame {
     fn update_tick(&mut self) {}
     fn render_tick(&self, screen: &mut Screen) {
+        //println!("Hewwo uwu! :3");
         let cam = Camera::new();
         let tri = Triangle {
             v1: Vertex {
@@ -341,12 +318,12 @@ impl Game for TestGame {
     }
 }
 
-impl ScreenRenderer for SDLRenderer {
-    fn start(&self, screen: &mut Screen, game: &dyn Game) {
+impl Window for SDL2Window {
+    fn start(&self, screen: &mut Screen, game: &mut dyn Game) {
         let sdl_context: Sdl = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
         let window = video_subsystem
-            .window("SDL Window", SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32)
+            .window("rustsim", SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32)
             .position_centered()
             .build()
             .unwrap();
@@ -358,18 +335,19 @@ impl ScreenRenderer for SDLRenderer {
         let mut event_pump = sdl_context.event_pump().unwrap();
 
         'running: loop {
+            game.update_tick();
             game.render_tick(screen);
             texture
                 .with_lock(None, |pixels: &mut [u8], pitch: usize| {
                     for y in 0..SCREEN_HEIGHT {
                         for x in 0..SCREEN_WIDTH {
                             let i = y * SCREEN_WIDTH + x;
-                            let Color { r, g, b, a } = screen.pixels[i];
+                            let col = screen.pixels[i];
                             let offset = y * pitch + x * 4;
-                            pixels[offset] = b as u8;
-                            pixels[offset + 1] = g as u8;
-                            pixels[offset + 2] = r as u8;
-                            pixels[offset + 3] = a as u8;
+                            pixels[offset] = col.b;
+                            pixels[offset + 1] = col.g;
+                            pixels[offset + 2] = col.r;
+                            pixels[offset + 3] = col.a;
                         }
                     }
                 })
@@ -377,7 +355,16 @@ impl ScreenRenderer for SDLRenderer {
 
             canvas.clear();
             canvas
-                .copy(&texture, None, Some(sdl2::rect::Rect::new(0, 0, 640, 480)))
+                .copy(
+                    &texture,
+                    None,
+                    Some(sdl2::rect::Rect::new(
+                        0,
+                        0,
+                        SCREEN_WIDTH as u32,
+                        SCREEN_HEIGHT as u32,
+                    )),
+                )
                 .unwrap();
             canvas.present();
 
@@ -416,7 +403,7 @@ impl PixelShader for DummyPassthruShader {
 impl Screen {
     pub fn new() -> Screen {
         Screen {
-            pixels: vec![WHITE; SCREEN_PIXEL_COUNT],
+            pixels: vec![Color::new(100, 200, 50, 255); SCREEN_PIXEL_COUNT],
         }
     }
 
@@ -430,13 +417,13 @@ impl Screen {
     }
 }
 
-fn start_game(screen: &mut Screen, renderer: &dyn ScreenRenderer, game: &mut dyn Game) {
-    renderer.start(screen, game);
+fn start_game(screen: &mut Screen, win: &dyn Window, game: &mut dyn Game) {
+    win.start(screen, game);
 }
 
 fn main() {
     let mut screen = Screen::new();
-    let renderer = SDLRenderer;
+    let win = SDL2Window;
     let mut game = TestGame;
-    start_game(&mut screen, &renderer, &mut game);
+    start_game(&mut screen, &win, &mut game);
 }
