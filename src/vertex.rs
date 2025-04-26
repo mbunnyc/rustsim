@@ -1,5 +1,6 @@
 use crate::{color::Color, vec2::Vector2, vec3::Vector3};
 
+#[derive(Clone)]
 pub struct Vertex {
     pub pos: Vector3,
     pub texture_coord: Vector2,

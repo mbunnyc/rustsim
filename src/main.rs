@@ -4,27 +4,28 @@ use sdl2win::SDL2Window;
 use test_game::TestGame;
 use window::Window;
 
-mod color;
 mod camera;
+mod color;
+mod draw_list;
 mod dummy_passthru_shader;
 mod even_line_missing_shader;
 mod everything_is_red_shader;
+mod game;
 mod key_event;
 mod keycode;
 mod mouse_button;
 mod mouse_event;
+mod pixel_placement;
+mod pixel_shader;
 mod rect;
 mod screen;
+mod sdl2win;
+mod test_game;
 mod triangle;
 mod vec2;
 mod vec3;
 mod vertex;
 mod window;
-mod game;
-mod test_game;
-mod sdl2win;
-mod pixel_placement;
-mod pixel_shader;
 
 fn main() {
     let mut screen = Screen::new();
