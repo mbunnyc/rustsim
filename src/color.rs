@@ -13,4 +13,4 @@ impl Color {
     }
 }
 
-const WHITE: Color = Color::new(255, 255, 255, 255);
+pub const WHITE: Color = Color::new(255, 255, 255, 255);

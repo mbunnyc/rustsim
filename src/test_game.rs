@@ -43,14 +43,17 @@ impl Game for TestGame {
     fn key_event(&mut self, key_ev: &KeyEvent) {
         match key_ev {
             KeyEvent::Pressed { key } => match key {
-                KeyCode::Up => self.cam.pos.y += 0.25,
-                KeyCode::Down => self.cam.pos.y -= 0.25,
-                KeyCode::Left => self.cam.pos.x -= 0.25,
-                KeyCode::Right => self.cam.pos.x += 0.25,
+                KeyCode::Up => self.cam.pos.y += 1.0,
+                KeyCode::Down => self.cam.pos.y -= 1.0,
+                KeyCode::Left => self.cam.pos.x -= 1.0,
+                KeyCode::Right => self.cam.pos.x += 1.0,
                 _ => {}
             },
             KeyEvent::Released { key: _ } => {}
         }
     }
-    fn mouse_event(&mut self, mouse_ev: &MouseEvent) {}
+    fn mouse_event(&mut self, mouse_ev: &MouseEvent) {
+
+
+    }
 }

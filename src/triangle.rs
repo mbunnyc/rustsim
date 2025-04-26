@@ -1,4 +1,5 @@
-use crate::{camera::Camera, color::Color, pixel_placement::PixelPlacement, pixel_shader::PixelShader, screen::Screen, vec2::Vector2, vec3::Vector3, vertex::Vertex, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::{camera::Camera, color::Color, pixel_placement::PixelPlacement, pixel_shader::PixelShader, screen::Screen, vec2::Vector2, vec3::Vector3, vertex::Vertex};
+use crate::screen::{SCREEN_HEIGHT, SCREEN_WIDTH};
 
 pub struct Triangle {
     pub v1: Vertex,
@@ -168,9 +169,24 @@ impl Triangle {
     }
 
     pub fn project_and_fill(&self, screen: &mut Screen, camera: &Camera, shader: &dyn PixelShader) {
+        // Check if triangle is behind the camera
+        let v1_rel = Vector3::subtract(&self.v1.pos, &camera.pos);
+        let v2_rel = Vector3::subtract(&self.v2.pos, &camera.pos);
+        let v3_rel = Vector3::subtract(&self.v3.pos, &camera.pos);
+        
+        let forward = Vector3::normalize(&Vector3::subtract(&camera.pointing_at, &camera.pos));
+        
+        // If all vertices are behind the camera, don't render
+        if Vector3::dot(&v1_rel, &forward) < 0.0 &&
+           Vector3::dot(&v2_rel, &forward) < 0.0 &&
+           Vector3::dot(&v3_rel, &forward) < 0.0 {
+            return;
+        }
+    
         let projected_triangle = self.with_applied_perspective(camera, SCREEN_WIDTH, SCREEN_HEIGHT);
         projected_triangle.fill(screen, shader);
     }
+    
 
     fn with_applied_perspective(
         &self,
@@ -181,42 +197,52 @@ impl Triangle {
         let forward = Vector3::normalize(&Vector3::subtract(&camera.pointing_at, &camera.pos));
         let right = Vector3::normalize(&Vector3::cross(&forward, &Vector3::new(0.0, 1.0, 0.0)));
         let up = Vector3::cross(&right, &forward);
-
+    
         let aspect_ratio = screen_width as f32 / screen_height as f32;
-
         let fov_radians = camera.fov.to_radians();
         let tan_half_fov = (fov_radians / 2.0).tan();
-
+    
+        // Define near and far planes
+        const NEAR_PLANE: f32 = 0.1;
+        const FAR_PLANE: f32 = 100.0;
+    
         let project_vertex = |vertex: &Vertex| -> Vertex {
             let relative_pos = Vector3::subtract(&vertex.pos, &camera.pos);
-
+    
             let camera_x = Vector3::dot(&relative_pos, &right);
             let camera_y = Vector3::dot(&relative_pos, &up);
             let camera_z = Vector3::dot(&relative_pos, &forward);
-
-            let z_factor = if camera_z > 0.01 {
-                camera_z
-            } else {
-                100.0
-            };
-
-            let screen_x = (camera_x / (tan_half_fov * camera_z)) * 0.5 + 0.5;
-            let screen_y = (camera_y / (tan_half_fov * camera_z / aspect_ratio)) * 0.5 + 0.5;
-
-            let screen_x = screen_x * screen_width as f32;
-            let screen_y = (1.0 - screen_y) * screen_height as f32;
-
+    
+            // Proper near plane handling
+            if camera_z < NEAR_PLANE {
+                // Return a vertex that will be off-screen
+                return Vertex::new(
+                    &Vector3::new(-1.0, -1.0, NEAR_PLANE),
+                    &vertex.texture_coord,
+                    &vertex.color,
+                );
+            }
+    
+            // Perspective division with proper near/far plane handling
+            let ndc_x = camera_x / (tan_half_fov * camera_z);
+            let ndc_y = camera_y / (tan_half_fov * camera_z / aspect_ratio);
+    
+            // Convert to screen coordinates
+            let screen_x = (ndc_x * 0.5 + 0.5) * screen_width as f32;
+            let screen_y = (1.0 - (ndc_y * 0.5 + 0.5)) * screen_height as f32;
+    
             Vertex::new(
-                &Vector3::new(screen_x, screen_y, z_factor),
+                &Vector3::new(screen_x, screen_y, camera_z),
                 &vertex.texture_coord,
                 &vertex.color,
             )
         };
-
+    
         let projected_v1 = project_vertex(&self.v1);
         let projected_v2 = project_vertex(&self.v2);
         let projected_v3 = project_vertex(&self.v3);
-
+    
         Triangle::new(projected_v1, projected_v2, projected_v3)
     }
+    
 }

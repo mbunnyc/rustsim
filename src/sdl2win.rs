@@ -1,4 +1,5 @@
-use crate::{game::Game, key_event::KeyEvent, keycode::KeyCode, screen::Screen, window::Window, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::{game::Game, key_event::KeyEvent, keycode::KeyCode, screen::Screen, window::Window};
+use crate::screen::{SCREEN_HEIGHT, SCREEN_WIDTH};
 
 pub struct SDL2Window;
 
