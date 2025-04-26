@@ -88,7 +88,7 @@ impl Window for SDL2Window {
                 .unwrap();
             canvas.present();
 
-            std::thread::sleep(std::time::Duration::from_millis(1000 / 18));
+            std::thread::sleep(std::time::Duration::from_millis(8));
         }
     }
 }

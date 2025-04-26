@@ -12,6 +12,7 @@ pub struct TestGame {
     pub left_key_held: bool,
     pub right_key_held: bool,
 }
+
 impl TestGame {
     pub fn new() -> Self {
         TestGame {
@@ -51,6 +52,13 @@ impl Game for TestGame {
             Color::new(128, 128, 0, 255),
         );
 
+        let floor2_tris = Triangle::create_floor_rect(
+            Vector2::new(-1.0, -1.5),
+            Vector2::new(1.0, 1.5),
+            1.5,
+            Color::new(10, 128, 50, 255),
+        );
+        
         let wall1_tris = Triangle::create_wall(
             &Vector3 {
                 x: 0.0,
@@ -63,12 +71,17 @@ impl Game for TestGame {
             &Color::new(0, 255, 180, 80),
         );
 
+
+        let elm_sh = EvenLineMissingShader;
+
+        for triangle in floor2_tris {
+            screen.draw_triangle(&triangle, &self.cam, &elm_sh);
+        }
+       
         // Draw both triangles that make up the floor
         for triangle in floor_tris {
             screen.draw_triangle(&triangle, &self.cam, &sh);
         }
-
-        let elm_sh = EvenLineMissingShader;
 
         for triangle in wall1_tris {
             screen.draw_triangle(&triangle, &self.cam, &elm_sh);
