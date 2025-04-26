@@ -1,5 +1,5 @@
-use crate::{game::Game, key_event::KeyEvent, keycode::KeyCode, screen::Screen, window::Window};
 use crate::screen::{SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::{game::Game, key_event::KeyEvent, keycode::KeyCode, screen::Screen, window::Window};
 
 pub struct SDL2Window;
 
@@ -26,19 +26,30 @@ impl Window for SDL2Window {
         'running: loop {
             for event in event_pump.poll_iter() {
                 use sdl2::event::Event;
-                
+
                 match event {
                     Event::Quit { .. } => break 'running,
-                    Event::KeyDown { keycode: Some(keycode), repeat: false, .. } => {
+                    Event::KeyDown {
+                        keycode: Some(keycode),
+                        repeat: false,
+                        ..
+                    } => {
                         if let Some(key) = KeyCode::from_sdl2_key(keycode) {
+                            if key == KeyCode::Escape {
+                                break 'running;
+                            }
                             game.key_event(&KeyEvent::Pressed { key });
                         }
-                    },
-                    Event::KeyUp { keycode: Some(keycode), repeat: false, .. } => {
+                    }
+                    Event::KeyUp {
+                        keycode: Some(keycode),
+                        repeat: false,
+                        ..
+                    } => {
                         if let Some(key) = KeyCode::from_sdl2_key(keycode) {
                             game.key_event(&KeyEvent::Released { key });
                         }
-                    },
+                    }
                     _ => {}
                 }
             }

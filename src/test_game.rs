@@ -7,10 +7,39 @@ use crate::{
 
 pub struct TestGame {
     pub cam: Camera,
+    pub up_key_held: bool,
+    pub down_key_held: bool,
+    pub left_key_held: bool,
+    pub right_key_held: bool,
+}
+impl TestGame {
+    pub fn new() -> Self {
+        TestGame {
+            cam: Camera::new(),
+            up_key_held: false,
+            down_key_held: false,
+            left_key_held: false,
+            right_key_held: false,
+        }
+    }
 }
 
 impl Game for TestGame {
-    fn update_tick(&mut self) {}
+    fn update_tick(&mut self) {
+        let amt = 0.1;
+        if self.up_key_held {
+            self.cam.pos.y += amt;
+        }
+        if self.down_key_held {
+            self.cam.pos.y -= amt;
+        }
+        if self.left_key_held {
+            self.cam.pos.x -= amt;
+        }
+        if self.right_key_held {
+            self.cam.pos.x += amt;
+        }
+    }
     fn render_tick(&self, screen: &mut Screen) {
         screen.clear(&Color::new(0, 255, 0, 0));
         let sh = DummyPassthruShader;
@@ -45,16 +74,42 @@ impl Game for TestGame {
             screen.draw_triangle(&triangle, &self.cam, &elm_sh);
         }
     }
+    
     fn key_event(&mut self, key_ev: &KeyEvent) {
         match key_ev {
             KeyEvent::Pressed { key } => match key {
-                KeyCode::Up => self.cam.pos.y += 1.0,
-                KeyCode::Down => self.cam.pos.y -= 1.0,
-                KeyCode::Left => self.cam.pos.x -= 1.0,
-                KeyCode::Right => self.cam.pos.x += 1.0,
+                KeyCode::Up => {
+                    self.up_key_held = true;
+                }
+                KeyCode::Down => {
+                    self.down_key_held = true;
+                    //self.cam.pos.y -= 1.0;
+                },
+                KeyCode::Left => {
+                    self.left_key_held = true;
+                    //self.cam.pos.x -= 1.0;
+                },
+                KeyCode::Right => {
+                    self.right_key_held = true;
+                    //self.cam.pos.x += 1.0;
+                },
                 _ => {}
             },
-            KeyEvent::Released { key: _ } => {}
+            KeyEvent::Released { key } => match key {
+                KeyCode::Up => {
+                    self.up_key_held = false;
+                }
+                KeyCode::Down => {
+                    self.down_key_held = false;
+                },
+                KeyCode::Left => {
+                    self.left_key_held = false;
+                },
+                KeyCode::Right => {
+                    self.right_key_held = false;
+                },
+                _ => {}
+            }
         }
     }
     fn mouse_event(&mut self, mouse_ev: &MouseEvent) {}

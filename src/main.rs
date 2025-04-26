@@ -30,6 +30,6 @@ mod window;
 fn main() {
     let mut screen = Screen::new();
     let win = SDL2Window;
-    let mut game = TestGame { cam: Camera::new() };
+    let mut game = TestGame::new();
     win.start(&mut screen, &mut game);
 }
