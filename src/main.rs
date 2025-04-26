@@ -1,5 +1,3 @@
-use sdl2::EventPump;
-
 const SCREEN_WIDTH: usize = 640;
 const SCREEN_HEIGHT: usize = 480;
 const SCREEN_PIXEL_COUNT: usize = SCREEN_WIDTH * SCREEN_HEIGHT;
@@ -253,13 +251,18 @@ impl Triangle {
             for x in min_x..=max_x {
                 let px = x as f32 + 0.5;
                 let py = y as f32 + 0.5;
-
+    
                 let (alpha, beta, gamma) = self.barycentric_coords(px, py);
-
+    
                 if alpha >= 0.0 && beta >= 0.0 && gamma >= 0.0 {
+                    // Interpolate depth using z coordinates
+                    let depth = alpha * self.v1.pos.z + 
+                               beta * self.v2.pos.z + 
+                               gamma * self.v3.pos.z;
+                    
                     let color = self.interpolate_color(alpha, beta, gamma);
                     let pixel = PixelPlacement { x, y, color };
-                    screen.draw_pixel(&pixel, shader);
+                    screen.draw_pixel(&pixel, shader, depth);
                 }
             }
         }
@@ -329,7 +332,7 @@ impl Triangle {
             let camera_z = Vector3::dot(&relative_pos, &forward);
 
             let z_factor = if camera_z > 0.01 {
-                1.0 / camera_z
+                camera_z
             } else {
                 100.0
             };
@@ -373,9 +376,43 @@ impl Camera {
 
 struct Screen {
     pub pixels: Vec<Color>,
+    pub depth_buffer: Vec<f32>,
 }
 
 impl Screen {
+    pub fn new() -> Screen {
+        Screen {
+            pixels: vec![Color::new(0, 0, 0, 255); SCREEN_PIXEL_COUNT],
+            depth_buffer: vec![f32::INFINITY; SCREEN_PIXEL_COUNT],
+        }
+    }
+
+    pub fn clear(&mut self, clear_color: &Color) {
+        self.pixels.fill(*clear_color);
+
+        // Reset depth buffer
+        self.depth_buffer.fill(f32::INFINITY);
+    }
+
+    pub fn draw_pixel(&mut self, pp: &PixelPlacement, shader: &dyn PixelShader, depth: f32) {        
+        if depth < 0.0 {
+            return;
+        }
+        let processed_pp = shader.process(pp);
+        // Only draw the pixel if it's closer than what's already there
+        let index = pp.y * SCREEN_WIDTH + pp.x;
+        if depth < self.depth_buffer[index] {
+            if processed_pp.color.a > 0 {
+                self.pixels[index] = processed_pp.color;
+                self.depth_buffer[index] = depth;
+            }
+        }
+    }
+
+    pub fn draw_triangle(&mut self, tri: &Triangle, cam: &Camera, shader: &dyn PixelShader) {
+        tri.project_and_fill(self, cam, shader);
+    }
+
     pub fn copy(&mut self, src: Rect, dst: Rect, to: &mut Screen) {
         // Calculate actual dimensions based on source and destination
         let src_width = src.size.x.floor() as usize;
@@ -408,15 +445,142 @@ impl Screen {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum KeyCode {
+    // Letters
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+    I,
+    J,
+    K,
+    L,
+    M,
+    N,
+    O,
+    P,
+    Q,
+    R,
+    S,
+    T,
+    U,
+    V,
+    W,
+    X,
+    Y,
+    Z,
+
+    // Numbers
+    Num0,
+    Num1,
+    Num2,
+    Num3,
+    Num4,
+    Num5,
+    Num6,
+    Num7,
+    Num8,
+    Num9,
+
+    // Arrow keys
+    Up,
+    Down,
+    Left,
+    Right,
+
+    // Special keys
+    Space,
+    Return,
+    Escape,
+    LShift,
+    RShift,
+    LCtrl,
+    RCtrl,
+    Tab,
+}
+
+impl KeyCode {
+    pub fn from_sdl2_key(key: sdl2::keyboard::Keycode) -> Option<KeyCode> {
+        use sdl2::keyboard::Keycode;
+        
+        match key {
+            // Letters
+            Keycode::A => Some(KeyCode::A),
+            Keycode::B => Some(KeyCode::B),
+            Keycode::C => Some(KeyCode::C),
+            Keycode::D => Some(KeyCode::D),
+            Keycode::E => Some(KeyCode::E),
+            Keycode::F => Some(KeyCode::F),
+            Keycode::G => Some(KeyCode::G),
+            Keycode::H => Some(KeyCode::H),
+            Keycode::I => Some(KeyCode::I),
+            Keycode::J => Some(KeyCode::J),
+            Keycode::K => Some(KeyCode::K),
+            Keycode::L => Some(KeyCode::L),
+            Keycode::M => Some(KeyCode::M),
+            Keycode::N => Some(KeyCode::N),
+            Keycode::O => Some(KeyCode::O),
+            Keycode::P => Some(KeyCode::P),
+            Keycode::Q => Some(KeyCode::Q),
+            Keycode::R => Some(KeyCode::R),
+            Keycode::S => Some(KeyCode::S),
+            Keycode::T => Some(KeyCode::T),
+            Keycode::U => Some(KeyCode::U),
+            Keycode::V => Some(KeyCode::V),
+            Keycode::W => Some(KeyCode::W),
+            Keycode::X => Some(KeyCode::X),
+            Keycode::Y => Some(KeyCode::Y),
+            Keycode::Z => Some(KeyCode::Z),
+
+            // Numbers
+            Keycode::Num0 => Some(KeyCode::Num0),
+            Keycode::Num1 => Some(KeyCode::Num1),
+            Keycode::Num2 => Some(KeyCode::Num2),
+            Keycode::Num3 => Some(KeyCode::Num3),
+            Keycode::Num4 => Some(KeyCode::Num4),
+            Keycode::Num5 => Some(KeyCode::Num5),
+            Keycode::Num6 => Some(KeyCode::Num6),
+            Keycode::Num7 => Some(KeyCode::Num7),
+            Keycode::Num8 => Some(KeyCode::Num8),
+            Keycode::Num9 => Some(KeyCode::Num9),
+
+            // Arrow keys
+            Keycode::Up => Some(KeyCode::Up),
+            Keycode::Down => Some(KeyCode::Down),
+            Keycode::Left => Some(KeyCode::Left),
+            Keycode::Right => Some(KeyCode::Right),
+
+            // Special keys
+            Keycode::Space => Some(KeyCode::Space),
+            Keycode::Return => Some(KeyCode::Return),
+            Keycode::Escape => Some(KeyCode::Escape),
+            Keycode::LShift => Some(KeyCode::LShift),
+            Keycode::RShift => Some(KeyCode::RShift),
+            Keycode::LCtrl => Some(KeyCode::LCtrl),
+            Keycode::RCtrl => Some(KeyCode::RCtrl),
+            Keycode::Tab => Some(KeyCode::Tab),
+            
+            _ => None,
+        }
+    }
+}
+
+
 trait Window {
     fn start(&self, screen: &mut Screen, game: &mut dyn Game);
 }
 
 struct SDL2Window;
 
+#[derive(Debug)]
 enum KeyEvent {
-    Pressed { key: i32 },
-    Released { key: i32 },
+    Pressed { key: KeyCode },
+    Released { key: KeyCode },
 }
 
 enum MouseButton {
@@ -458,7 +622,7 @@ impl Game for TestGame {
         let wall1_tris = Triangle::create_wall(
             &Vector3 {
                 x: 0.0,
-                y: 0.0,
+                y: -5.0,
                 z: 0.0,
             },
             4.0,
@@ -478,7 +642,18 @@ impl Game for TestGame {
             screen.draw_triangle(&triangle, &self.cam, &elm_sh);
         }
     }
-    fn key_event(&mut self, key_ev: &KeyEvent) {}
+    fn key_event(&mut self, key_ev: &KeyEvent) {
+        match key_ev {
+            KeyEvent::Pressed { key } => match key {
+                KeyCode::Up => self.cam.pos.y += 0.25,
+                KeyCode::Down => self.cam.pos.y -= 0.25,
+                KeyCode::Left => self.cam.pos.x -= 0.25,
+                KeyCode::Right => self.cam.pos.x += 0.25,
+                _ => {}
+            },
+            KeyEvent::Released { key: _ } => {}
+        }
+    }
     fn mouse_event(&mut self, mouse_ev: &MouseEvent) {}
 }
 
@@ -503,8 +678,28 @@ impl Window for SDL2Window {
         let mut event_pump = sdl_context.event_pump().unwrap();
 
         'running: loop {
+            for event in event_pump.poll_iter() {
+                use sdl2::event::Event;
+                
+                match event {
+                    Event::Quit { .. } => break 'running,
+                    Event::KeyDown { keycode: Some(keycode), repeat: false, .. } => {
+                        if let Some(key) = KeyCode::from_sdl2_key(keycode) {
+                            game.key_event(&KeyEvent::Pressed { key });
+                        }
+                    },
+                    Event::KeyUp { keycode: Some(keycode), repeat: false, .. } => {
+                        if let Some(key) = KeyCode::from_sdl2_key(keycode) {
+                            game.key_event(&KeyEvent::Released { key });
+                        }
+                    },
+                    _ => {}
+                }
+            }
+
             game.update_tick();
             game.render_tick(screen);
+
             texture
                 .with_lock(None, |pixels: &mut [u8], pitch: usize| {
                     for y in 0..SCREEN_HEIGHT {
@@ -535,13 +730,6 @@ impl Window for SDL2Window {
                 )
                 .unwrap();
             canvas.present();
-
-            for event in event_pump.poll_iter() {
-                use sdl2::event::Event;
-                if let Event::Quit { .. } = event {
-                    break 'running;
-                }
-            }
 
             std::thread::sleep(std::time::Duration::from_millis(1000 / 18));
         }
@@ -605,35 +793,6 @@ impl PixelShader for EvenLineMissingShader {
                 }
             }            
         }
-    }
-}
-
-impl Screen {
-    pub fn new() -> Screen {
-        Screen {
-            pixels: vec![Color::new(0, 200, 50, 255); SCREEN_PIXEL_COUNT],
-        }
-    }
-
-    pub fn clear(&mut self, clear_color: &Color) {
-        for x in 0..SCREEN_WIDTH {
-            for y in 0..SCREEN_HEIGHT {
-                let sh = DummyPassthruShader;
-                let pp = PixelPlacement { x: x, y: y, color: *clear_color };
-                self.draw_pixel(&pp, &sh);
-            }
-        }
-    }
-
-    pub fn draw_pixel(&mut self, pp: &PixelPlacement, shader: &dyn PixelShader) {
-        let processed_pp = shader.process(pp);
-        if processed_pp.color.a > 0 {
-            self.pixels[processed_pp.y * SCREEN_WIDTH + processed_pp.x] = processed_pp.color;
-        }
-    }
-
-    pub fn draw_triangle(&mut self, tri: &Triangle, cam: &Camera, shader: &dyn PixelShader) {
-        tri.project_and_fill(self, cam, shader);
     }
 }
 
