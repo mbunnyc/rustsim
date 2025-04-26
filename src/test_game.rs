@@ -1,4 +1,9 @@
-use crate::{camera::Camera, color::Color, dummy_passthru_shader::DummyPassthruShader, even_line_missing_shader::EvenLineMissingShader, game::Game, key_event::KeyEvent, keycode::KeyCode, mouse_event::MouseEvent, screen::Screen, triangle::Triangle, vec2::Vector2, vec3::Vector3};
+use crate::{
+    camera::Camera, color::Color, dummy_passthru_shader::DummyPassthruShader,
+    even_line_missing_shader::EvenLineMissingShader, game::Game, key_event::KeyEvent,
+    keycode::KeyCode, mouse_event::MouseEvent, screen::Screen, triangle::Triangle, vec2::Vector2,
+    vec3::Vector3,
+};
 
 pub struct TestGame {
     pub cam: Camera,
@@ -7,7 +12,7 @@ pub struct TestGame {
 impl Game for TestGame {
     fn update_tick(&mut self) {}
     fn render_tick(&self, screen: &mut Screen) {
-        screen.clear(&Color::new(0, 0, 0, 0));
+        screen.clear(&Color::new(0, 255, 0, 0));
         let sh = DummyPassthruShader;
         // Create a 2x3 floor at height 0
         let floor_tris = Triangle::create_floor_rect(
@@ -52,8 +57,5 @@ impl Game for TestGame {
             KeyEvent::Released { key: _ } => {}
         }
     }
-    fn mouse_event(&mut self, mouse_ev: &MouseEvent) {
-
-
-    }
+    fn mouse_event(&mut self, mouse_ev: &MouseEvent) {}
 }
