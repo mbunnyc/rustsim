@@ -1,4 +1,3 @@
-use camera::Camera;
 use screen::Screen;
 use sdl2win::SDL2Window;
 use test_game::TestGame;
