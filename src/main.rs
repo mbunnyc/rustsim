@@ -1,6 +1,4 @@
-use core::f32;
-use sdl2::Sdl;
-use sdl2::pixels::PixelFormatEnum;
+use sdl2::EventPump;
 
 const SCREEN_WIDTH: usize = 640;
 const SCREEN_HEIGHT: usize = 480;
@@ -128,13 +126,14 @@ impl Vertex {
                 z: pos.z,
             },
             texture_coord: Vector2 {
-                x: texture_coord.x, y: texture_coord.y
+                x: texture_coord.x,
+                y: texture_coord.y,
             },
             color: Color {
-                r: color.r, 
-                g: color.g, 
-                b: color.b, 
-                a: color.a
+                r: color.r,
+                g: color.g,
+                b: color.b,
+                a: color.a,
             },
         }
     }
@@ -151,8 +150,56 @@ impl Triangle {
         Self { v1, v2, v3 }
     }
 
+    pub fn create_wall(
+        bottom_left: &Vector3,
+        length: f32,
+        height: f32,
+        rotation_deg: f32,
+        color: &Color,
+    ) -> Vec<Triangle> {
+        // Convert rotation from degrees to radians
+        let rotation_rad = rotation_deg.to_radians();
+
+        // Calculate the direction vector based on rotation
+        let direction_x = rotation_rad.cos();
+        let direction_z = rotation_rad.sin();
+
+        // Calculate the four corners of the wall
+        let bottom_right = Vector3::new(
+            bottom_left.x + direction_x * length,
+            bottom_left.y,
+            bottom_left.z + direction_z * length,
+        );
+
+        let top_left = Vector3::new(bottom_left.x, bottom_left.y + height, bottom_left.z);
+
+        let top_right = Vector3::new(bottom_right.x, bottom_right.y + height, bottom_right.z);
+
+        // Create two triangles to form the wall
+
+        vec![
+            // First triangle (bottom-left triangle)
+            Triangle::new(
+                Vertex::new(bottom_left, &Vector2::new(0.0, 0.0), &color),
+                Vertex::new(&bottom_right, &Vector2::new(1.0, 0.0), &color),
+                Vertex::new(&top_left, &Vector2::new(0.0, 1.0), &color),
+            ),
+            // Second triangle (top-right triangle)
+            Triangle::new(
+                Vertex::new(&bottom_right, &Vector2::new(1.0, 0.0), &color),
+                Vertex::new(&top_right, &Vector2::new(1.0, 1.0), &color),
+                Vertex::new(&top_left, &Vector2::new(0.0, 1.0), &color),
+            ),
+        ]
+    }
+
     // Helper function to create a floor rectangle from two points
-    pub fn create_floor_rect(start: Vector2, end: Vector2, height: f32, color: Color) -> Vec<Triangle> {
+    pub fn create_floor_rect(
+        start: Vector2,
+        end: Vector2,
+        height: f32,
+        color: Color,
+    ) -> Vec<Triangle> {
         // Ensure we create vertices in the correct order regardless of input points
         let min_x = start.x.min(end.x);
         let max_x = start.x.max(end.x);
@@ -174,39 +221,19 @@ impl Triangle {
         vec![
             // First triangle (bottom-left triangle)
             Triangle::new(
-                Vertex::new(
-                    &bottom_left,
-                    &Vector2::new(0.0, 0.0),
-                    &color,
-                ),
-                Vertex::new(
-                    &bottom_right,
-                    &Vector2::new(width * tex_scale, 0.0),
-                    &color,
-                ),
-                Vertex::new(
-                    &top_left,
-                    &Vector2::new(0.0, depth * tex_scale),
-                    &color,
-                ),
+                Vertex::new(&bottom_left, &Vector2::new(0.0, 0.0), &color),
+                Vertex::new(&bottom_right, &Vector2::new(width * tex_scale, 0.0), &color),
+                Vertex::new(&top_left, &Vector2::new(0.0, depth * tex_scale), &color),
             ),
             // Second triangle (top-right triangle)
             Triangle::new(
-                Vertex::new(
-                    &bottom_right,
-                    &Vector2::new(width * tex_scale, 0.0),
-                    &color,
-                ),
+                Vertex::new(&bottom_right, &Vector2::new(width * tex_scale, 0.0), &color),
                 Vertex::new(
                     &top_right,
                     &Vector2::new(width * tex_scale, depth * tex_scale),
                     &color,
                 ),
-                Vertex::new(
-                    &top_left,
-                    &Vector2::new(0.0, depth * tex_scale),
-                    &color,
-                ),
+                Vertex::new(&top_left, &Vector2::new(0.0, depth * tex_scale), &color),
             ),
         ]
     }
@@ -242,22 +269,21 @@ impl Triangle {
         let v0 = Vector2::new(self.v2.pos.x - self.v1.pos.x, self.v2.pos.y - self.v1.pos.y);
         let v1 = Vector2::new(self.v3.pos.x - self.v1.pos.x, self.v3.pos.y - self.v1.pos.y);
         let v2 = Vector2::new(px - self.v1.pos.x, py - self.v1.pos.y);
-        
+
         let d00 = v0.x * v0.x + v0.y * v0.y;
         let d01 = v0.x * v1.x + v0.y * v1.y;
         let d11 = v1.x * v1.x + v1.y * v1.y;
         let d20 = v2.x * v0.x + v2.y * v0.y;
         let d21 = v2.x * v1.x + v2.y * v1.y;
-        
+
         let denom = d00 * d11 - d01 * d01;
-        
+
         let beta = (d11 * d20 - d01 * d21) / denom;
         let gamma = (d00 * d21 - d01 * d20) / denom;
         let alpha = 1.0 - beta - gamma;
-        
+
         (alpha, beta, gamma)
     }
-    
 
     fn interpolate_color(&self, alpha: f32, beta: f32, gamma: f32) -> Color {
         let r = (self.v1.color.r as f32 * alpha
@@ -277,7 +303,6 @@ impl Triangle {
 
     pub fn project_and_fill(&self, screen: &mut Screen, camera: &Camera, shader: &dyn PixelShader) {
         let projected_triangle = self.with_applied_perspective(camera, SCREEN_WIDTH, SCREEN_HEIGHT);
-
         projected_triangle.fill(screen, shader);
     }
 
@@ -361,15 +386,19 @@ impl Screen {
         let dst_y = dst.pos.y.floor() as usize;
 
         // Ensure we don't copy outside screen bounds
-        let copy_width = src_width.min(SCREEN_WIDTH - dst_x).min(SCREEN_WIDTH - src_x);
-        let copy_height = src_height.min(SCREEN_HEIGHT - dst_y).min(SCREEN_HEIGHT - src_y);
+        let copy_width = src_width
+            .min(SCREEN_WIDTH - dst_x)
+            .min(SCREEN_WIDTH - src_x);
+        let copy_height = src_height
+            .min(SCREEN_HEIGHT - dst_y)
+            .min(SCREEN_HEIGHT - src_y);
 
         // Copy pixels row by row
         for y in 0..copy_height {
             for x in 0..copy_width {
                 let src_index = (src_y + y) * SCREEN_WIDTH + (src_x + x);
                 let dst_index = (dst_y + y) * SCREEN_WIDTH + (dst_x + x);
-                
+
                 // Bounds check to prevent any possible overflow
                 if src_index < SCREEN_PIXEL_COUNT && dst_index < SCREEN_PIXEL_COUNT {
                     to.pixels[dst_index] = self.pixels[src_index];
@@ -385,9 +414,28 @@ trait Window {
 
 struct SDL2Window;
 
+enum KeyEvent {
+    Pressed { key: i32 },
+    Released { key: i32 },
+}
+
+enum MouseButton {
+    Left,
+    Middle,
+    Right,
+}
+
+enum MouseEvent {
+    ButtonDown { btn: MouseButton },
+    ButtonRelease { btn: MouseButton },
+    NewPosition { x: u32, y: u32 },
+}
+
 trait Game {
     fn update_tick(&mut self);
     fn render_tick(&self, screen: &mut Screen);
+    fn key_event(&mut self, key_ev: &KeyEvent);
+    fn mouse_event(&mut self, mouse_ev: &MouseEvent);
 }
 
 struct TestGame {
@@ -397,6 +445,7 @@ struct TestGame {
 impl Game for TestGame {
     fn update_tick(&mut self) {}
     fn render_tick(&self, screen: &mut Screen) {
+        screen.clear(&Color::new(0, 0, 0, 0));
         let sh = DummyPassthruShader;
         // Create a 2x3 floor at height 0
         let floor_tris = Triangle::create_floor_rect(
@@ -406,17 +455,36 @@ impl Game for TestGame {
             Color::new(128, 128, 0, 255),
         );
 
+        let wall1_tris = Triangle::create_wall(
+            &Vector3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            4.0,
+            2.0,
+            0.0,
+            &Color::new(0, 255, 180, 80),
+        );
+
         // Draw both triangles that make up the floor
         for triangle in floor_tris {
             screen.draw_triangle(&triangle, &self.cam, &sh);
         }
 
+        let elm_sh = EvenLineMissingShader;
+
+        for triangle in wall1_tris {
+            screen.draw_triangle(&triangle, &self.cam, &elm_sh);
+        }
     }
+    fn key_event(&mut self, key_ev: &KeyEvent) {}
+    fn mouse_event(&mut self, mouse_ev: &MouseEvent) {}
 }
 
 impl Window for SDL2Window {
     fn start(&self, screen: &mut Screen, game: &mut dyn Game) {
-        let sdl_context: Sdl = sdl2::init().unwrap();
+        let sdl_context: sdl2::Sdl = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
         let window = video_subsystem
             .window("rustsim", SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32)
@@ -426,7 +494,11 @@ impl Window for SDL2Window {
         let mut canvas = window.into_canvas().build().unwrap();
         let texture_creator = canvas.texture_creator();
         let mut texture = texture_creator
-            .create_texture_streaming(PixelFormatEnum::ARGB8888, 640, 480)
+            .create_texture_streaming(
+                sdl2::pixels::PixelFormatEnum::ARGB8888,
+                SCREEN_WIDTH as u32,
+                SCREEN_HEIGHT as u32,
+            )
             .unwrap();
         let mut event_pump = sdl_context.event_pump().unwrap();
 
@@ -515,6 +587,27 @@ impl PixelShader for EverythingIsRedShader {
     }
 }
 
+struct EvenLineMissingShader;
+
+impl PixelShader for EvenLineMissingShader {
+    fn process(&self, pp: &PixelPlacement) -> PixelPlacement {
+        PixelPlacement {
+            x: pp.x,
+            y: pp.y,
+            color: Color {
+                r: pp.color.r,
+                g: pp.color.g,
+                b: pp.color.b,
+                a: if pp.y % 2 != 0 {
+                    pp.color.a
+                } else {
+                    0
+                }
+            }            
+        }
+    }
+}
+
 impl Screen {
     pub fn new() -> Screen {
         Screen {
@@ -522,9 +615,21 @@ impl Screen {
         }
     }
 
+    pub fn clear(&mut self, clear_color: &Color) {
+        for x in 0..SCREEN_WIDTH {
+            for y in 0..SCREEN_HEIGHT {
+                let sh = DummyPassthruShader;
+                let pp = PixelPlacement { x: x, y: y, color: *clear_color };
+                self.draw_pixel(&pp, &sh);
+            }
+        }
+    }
+
     pub fn draw_pixel(&mut self, pp: &PixelPlacement, shader: &dyn PixelShader) {
         let processed_pp = shader.process(pp);
-        self.pixels[processed_pp.y * SCREEN_WIDTH + processed_pp.x] = processed_pp.color;
+        if processed_pp.color.a > 0 {
+            self.pixels[processed_pp.y * SCREEN_WIDTH + processed_pp.x] = processed_pp.color;
+        }
     }
 
     pub fn draw_triangle(&mut self, tri: &Triangle, cam: &Camera, shader: &dyn PixelShader) {
