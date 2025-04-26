@@ -1,4 +1,3 @@
-
 pub enum MouseButton {
     Left,
     Middle,
