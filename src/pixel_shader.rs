@@ -19,13 +19,30 @@ impl RainbowShader {
     }
 }
 
-impl PixelShader for RainbowShader {
+// Fixed RainbowShader implementation with corrected HSV to RGB conversion
+pub struct TexturedRainbowShader {
+    time: f32,
+    speed: f32,
+}
+
+impl TexturedRainbowShader {
+    pub fn new(speed: f32) -> Self {
+        TexturedRainbowShader {
+            time: 0.0,
+            speed,
+        }
+    }
+}
+
+impl PixelShader for TexturedRainbowShader {
     fn process(&self, pp: &PixelPlacement, triangle: &Triangle) -> PixelPlacement {
-        // Create a rainbow effect by using position and time, scaled by z-depth for perspective
-        let perspective_scale = 1.0 / (1.0 + triangle.z_at(pp.x as f32, pp.y as f32) * 0.001);
-        let hue = (pp.x as f32 * 0.01 + pp.y as f32 * 0.01 + self.time) * perspective_scale % 1.0;
+        // Get barycentric coordinates for texture mapping
+        let (u, v, _xx) = triangle.barycentric_coords(pp.x as f32, pp.y as f32);
         
-        // Convert HSV to RGB
+        // Create a rainbow effect using the texture coordinates
+        let hue = ((u + v) * 2.0 + self.time * self.speed) % 1.0;
+        
+        // Convert HSV to RGB (with V=1, S=1)
         let h = hue * 6.0;
         let i = h.floor();
         let f = h - i;
@@ -33,13 +50,14 @@ impl PixelShader for RainbowShader {
         let q = 1.0 - f;
         let t = f;
 
-        let (r, g, b) = match i as i32 {
+        let (r, g, b) = match i as i32 % 6 {
             0 => (1.0, t, p),
             1 => (q, 1.0, p),
             2 => (p, 1.0, t),
             3 => (p, q, 1.0),
             4 => (t, p, 1.0),
-            _ => (1.0, p, q),
+            5 => (1.0, p, q),
+            _ => (1.0, 1.0, 1.0),
         };
 
         PixelPlacement {
@@ -49,7 +67,7 @@ impl PixelShader for RainbowShader {
                 r: (r * 255.0) as u8,
                 g: (g * 255.0) as u8,
                 b: (b * 255.0) as u8,
-                a: ((pp.color.a as f32) * perspective_scale) as u8,
+                a: pp.color.a,
             },
         }
     }

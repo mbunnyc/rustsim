@@ -148,7 +148,7 @@ impl Triangle {
         }
     }
 
-    fn barycentric_coords(&self, px: f32, py: f32) -> (f32, f32, f32) {
+    pub fn barycentric_coords(&self, px: f32, py: f32) -> (f32, f32, f32) {
         let v0 = Vector2::new(self.v2.pos.x - self.v1.pos.x, self.v2.pos.y - self.v1.pos.y);
         let v1 = Vector2::new(self.v3.pos.x - self.v1.pos.x, self.v3.pos.y - self.v1.pos.y);
         let v2 = Vector2::new(px - self.v1.pos.x, py - self.v1.pos.y);
