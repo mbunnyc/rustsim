@@ -16,6 +16,19 @@ impl Triangle {
         Self { v1, v2, v3 }
     }
 
+    pub fn z_at(&self, x: f32, y: f32) -> f32 {
+        let v1 = &self.v1.pos;
+        let v2 = &self.v2.pos;
+        let v3 = &self.v3.pos;
+
+        let denom = (v2.z - v3.z) * (v1.x - v3.x) + (v3.x - v2.x) * (v1.z - v3.z);
+        let a = ((v2.z - v3.z) * (x - v3.x) + (v3.x - v2.x) * (y - v3.z)) / denom;
+        let b = ((v3.z - v1.z) * (x - v3.x) + (v1.x - v3.x) * (y - v3.z)) / denom;
+        let c = 1.0 - a - b;
+
+        a * v1.y + b * v2.y + c * v3.y
+    }
+
     pub fn create_wall(
         bottom_left: &Vector3,
         length: f32,
@@ -129,7 +142,7 @@ impl Triangle {
 
                     let color = self.interpolate_color(alpha, beta, gamma);
                     let pixel = PixelPlacement { x, y, color };
-                    screen.draw_pixel(&pixel, shader, depth);
+                    screen.draw_pixel(&pixel, shader, depth, &self);
                 }
             }
         }

@@ -1,9 +1,9 @@
-use crate::{color::Color, pixel_placement::PixelPlacement, pixel_shader::PixelShader};
+use crate::{color::Color, pixel_placement::PixelPlacement, pixel_shader::PixelShader, triangle::Triangle};
 
 pub struct DitherShader;
 
 impl PixelShader for DitherShader {
-    fn process(&self, pp: &PixelPlacement) -> PixelPlacement {
+    fn process(&self, pp: &PixelPlacement, _triangle: &Triangle) -> PixelPlacement {
         let alt: bool = if pp.y % 2 == 0 { false } else { true };
         PixelPlacement {
             x: pp.x,
