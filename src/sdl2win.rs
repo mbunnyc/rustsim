@@ -10,6 +10,7 @@ impl Window for SDL2Window {
         let window = video_subsystem
             .window("rustsim", SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32)
             .position_centered()
+            //.fullscreen()
             .build()
             .unwrap();
         let mut canvas = window.into_canvas().build().unwrap();

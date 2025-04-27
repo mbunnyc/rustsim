@@ -5,6 +5,7 @@ use window::Window;
 
 mod camera;
 mod color;
+mod dither_shader;
 mod draw_list;
 mod dummy_passthru_shader;
 mod even_line_missing_shader;

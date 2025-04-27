@@ -1,8 +1,8 @@
 use crate::{
-    camera::Camera, color::Color, dummy_passthru_shader::DummyPassthruShader,
-    even_line_missing_shader::EvenLineMissingShader, game::Game, key_event::KeyEvent,
-    keycode::KeyCode, mouse_event::MouseEvent, screen::Screen, triangle::Triangle, vec2::Vector2,
-    vec3::Vector3,
+    camera::Camera, color::Color, dither_shader::DitherShader, draw_list::DrawList,
+    dummy_passthru_shader::DummyPassthruShader, even_line_missing_shader::EvenLineMissingShader,
+    game::Game, key_event::KeyEvent, keycode::KeyCode, mouse_event::MouseEvent, screen::Screen,
+    triangle::Triangle, vec2::Vector2, vec3::Vector3,
 };
 
 pub struct TestGame {
@@ -11,6 +11,12 @@ pub struct TestGame {
     pub down_key_held: bool,
     pub left_key_held: bool,
     pub right_key_held: bool,
+    pub space_key_held: bool,
+    pub shift_key_held: bool,
+    pub w_key_held: bool,
+    pub s_key_held: bool,
+    pub a_key_held: bool,
+    pub d_key_held: bool,
 }
 
 impl TestGame {
@@ -21,18 +27,44 @@ impl TestGame {
             down_key_held: false,
             left_key_held: false,
             right_key_held: false,
+            space_key_held: false,
+            shift_key_held: false,
+            w_key_held: false,
+            s_key_held: false,
+            a_key_held: false,
+            d_key_held: false,
         }
     }
 }
 
 impl Game for TestGame {
+    fn key_event(&mut self, key_ev: &KeyEvent) {
+        let state = matches!(key_ev, KeyEvent::Pressed { .. });
+        let key_held = match key_ev {
+            KeyEvent::Pressed { key } | KeyEvent::Released { key } => match key {
+                KeyCode::Up => &mut self.up_key_held,
+                KeyCode::Down => &mut self.down_key_held,
+                KeyCode::Left => &mut self.left_key_held,
+                KeyCode::Right => &mut self.right_key_held,
+                KeyCode::Space => &mut self.space_key_held,
+                KeyCode::LShift => &mut self.shift_key_held,
+                KeyCode::W => &mut self.w_key_held,
+                KeyCode::S => &mut self.s_key_held,
+                KeyCode::A => &mut self.a_key_held,
+                KeyCode::D => &mut self.d_key_held,
+                _ => return,
+            },
+        };
+        *key_held = state;
+    }
+
     fn update_tick(&mut self) {
         let amt = 0.1;
         if self.up_key_held {
-            self.cam.pos.y += amt;
+            self.cam.pos.z += amt;
         }
         if self.down_key_held {
-            self.cam.pos.y -= amt;
+            self.cam.pos.z -= amt;
         }
         if self.left_key_held {
             self.cam.pos.x -= amt;
@@ -40,9 +72,16 @@ impl Game for TestGame {
         if self.right_key_held {
             self.cam.pos.x += amt;
         }
+        if self.shift_key_held {
+            self.cam.pos.y -= amt;
+        }
+        if self.space_key_held {
+            self.cam.pos.y += amt;
+        }
     }
+
     fn render_tick(&self, screen: &mut Screen) {
-        screen.clear(&Color::new(0, 255, 0, 0));
+        screen.clear(&Color::new(0, 0, 0, 0));
         let sh = DummyPassthruShader;
         // Create a 2x3 floor at height 0
         let floor_tris = Triangle::create_floor_rect(
@@ -58,26 +97,41 @@ impl Game for TestGame {
             1.5,
             Color::new(10, 128, 50, 255),
         );
-        
+
         let wall1_tris = Triangle::create_wall(
             &Vector3 {
-                x: 0.0,
-                y: -5.0,
-                z: 0.0,
+                x: -1.0,
+                y: 0.0,
+                z: -1.5,
             },
-            4.0,
             2.0,
+            1.5,
             0.0,
-            &Color::new(0, 255, 180, 80),
+            &Color::new(0, 0, 20, 255),
         );
 
+        let mut draw_list = DrawList::new();
+
+        let wall2_tris = Triangle::create_wall(
+            &Vector3 {
+                x: -1.0,
+                y: 0.0,
+                z: 1.5,
+            },
+            2.0,
+            1.5,
+            0.0,
+            &Color::new(0, 0, 20, 255),
+        );
+
+        draw_list.add(&wall2_tris);
 
         let elm_sh = EvenLineMissingShader;
 
         for triangle in floor2_tris {
             screen.draw_triangle(&triangle, &self.cam, &elm_sh);
         }
-       
+
         // Draw both triangles that make up the floor
         for triangle in floor_tris {
             screen.draw_triangle(&triangle, &self.cam, &sh);
@@ -86,44 +140,11 @@ impl Game for TestGame {
         for triangle in wall1_tris {
             screen.draw_triangle(&triangle, &self.cam, &elm_sh);
         }
+
+        let dith_sh = DitherShader;
+
+        draw_list.draw(screen, &self.cam, &dith_sh);
     }
-    
-    fn key_event(&mut self, key_ev: &KeyEvent) {
-        match key_ev {
-            KeyEvent::Pressed { key } => match key {
-                KeyCode::Up => {
-                    self.up_key_held = true;
-                }
-                KeyCode::Down => {
-                    self.down_key_held = true;
-                    //self.cam.pos.y -= 1.0;
-                },
-                KeyCode::Left => {
-                    self.left_key_held = true;
-                    //self.cam.pos.x -= 1.0;
-                },
-                KeyCode::Right => {
-                    self.right_key_held = true;
-                    //self.cam.pos.x += 1.0;
-                },
-                _ => {}
-            },
-            KeyEvent::Released { key } => match key {
-                KeyCode::Up => {
-                    self.up_key_held = false;
-                }
-                KeyCode::Down => {
-                    self.down_key_held = false;
-                },
-                KeyCode::Left => {
-                    self.left_key_held = false;
-                },
-                KeyCode::Right => {
-                    self.right_key_held = false;
-                },
-                _ => {}
-            }
-        }
-    }
+
     fn mouse_event(&mut self, mouse_ev: &MouseEvent) {}
 }
