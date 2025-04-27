@@ -1,8 +1,5 @@
 use crate::{
-    camera::Camera, color::Color, dither_shader::DitherShader, draw_list::DrawList,
-    dummy_passthru_shader::DummyPassthruShader, even_line_missing_shader::EvenLineMissingShader,
-    game::Game, key_event::KeyEvent, keycode::KeyCode, mouse_event::MouseEvent, screen::Screen,
-    triangle::Triangle, vec2::Vector2, vec3::Vector3,
+    camera::Camera, color::Color, dither_shader::DitherShader, draw_list::DrawList, dummy_passthru_shader::DummyPassthruShader, even_line_missing_shader::EvenLineMissingShader, game::Game, key_event::KeyEvent, keycode::KeyCode, mouse_event::MouseEvent, pixel_shader::RainbowShader, screen::Screen, triangle::Triangle, vec2::Vector2, vec3::Vector3
 };
 
 pub struct TestGame {
@@ -141,7 +138,7 @@ impl Game for TestGame {
             screen.draw_triangle(&triangle, &self.cam, &elm_sh);
         }
 
-        let dith_sh = DitherShader;
+        let dith_sh = RainbowShader::new(5.0);
 
         draw_list.draw(screen, &self.cam, &dith_sh);
     }
