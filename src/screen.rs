@@ -1,4 +1,7 @@
-use crate::{camera::Camera, color::Color, pixel_placement::PixelPlacement, pixel_shader::PixelShader, rect::Rect, triangle::Triangle};
+use crate::{
+    camera::Camera, color::Color, pixel_placement::PixelPlacement, pixel_shader::PixelShader,
+    triangle::Triangle,
+};
 
 pub const SCREEN_WIDTH: usize = 640;
 pub const SCREEN_HEIGHT: usize = 480;
@@ -24,7 +27,13 @@ impl Screen {
         self.depth_buffer.fill(f32::INFINITY);
     }
 
-    pub fn draw_pixel(&mut self, pp: &PixelPlacement, shader: &dyn PixelShader, depth: f32, triangle: &Triangle) {        
+    pub fn draw_pixel(
+        &mut self,
+        pp: &PixelPlacement,
+        shader: &dyn PixelShader,
+        depth: f32,
+        triangle: &Triangle,
+    ) {
         if depth < 0.0 {
             return;
         }

@@ -1,5 +1,8 @@
 use crate::{
-    camera::Camera, color::Color, draw_list::DrawList, dummy_passthru_shader::DummyPassthruShader, even_line_missing_shader::EvenLineMissingShader, game::Game, key_event::KeyEvent, keycode::KeyCode, mouse_button::MouseButton, mouse_event::MouseEvent, pixel_shader::RainbowShader, screen::Screen, triangle::Triangle, vec2::Vector2, vec3::Vector3
+    camera::Camera, color::Color, draw_list::DrawList, dummy_passthru_shader::DummyPassthruShader,
+    even_line_missing_shader::EvenLineMissingShader, game::Game, key_event::KeyEvent,
+    keycode::KeyCode, mouse_button::MouseButton, mouse_event::MouseEvent,
+    pixel_shader::RainbowShader, screen::Screen, triangle::Triangle, vec2::Vector2, vec3::Vector3,
 };
 
 pub struct TestGame {
@@ -82,7 +85,9 @@ impl Game for TestGame {
         if self.left_key_held {
             self.cam.pos.x -= amt;
         }
-        if self.right_key_held {
+        if self.right_key_held
+        /*|| self.mouse_left_click*/
+        {
             self.cam.pos.x += amt;
         }
         if self.shift_key_held {
@@ -91,40 +96,48 @@ impl Game for TestGame {
         if self.space_key_held {
             self.cam.pos.y += amt;
         }
+        self.mouse_left_click = false;
+        self.mouse_right_click = false;
+        self.mouse_middle_click = false;
     }
 
     fn mouse_event(&mut self, mouse_ev: &MouseEvent) {
         match mouse_ev {
-            MouseEvent::ButtonDown { x, y, btn } => match btn {
-                MouseButton::Left => {
-                    self.mouse_left_click = false;
-                    if !self.mouse_left_down {
-                        self.mouse_left_click = true
+            MouseEvent::ButtonDown { x, y, btn } => {
+                self.mouse_x = *x as u32;
+                self.mouse_y = *y as u32;
+                match btn {
+                    MouseButton::Left => {
+                        if !self.mouse_left_down {
+                            self.mouse_left_click = true
+                        }
+                        self.mouse_left_down = true
                     }
-                    self.mouse_left_down = true
-                },
-                MouseButton::Right => {
-                    self.mouse_right_click = false;
-                    if !self.mouse_right_down {
-                        self.mouse_right_click = true
+                    MouseButton::Right => {
+                        if !self.mouse_right_down {
+                            self.mouse_right_click = true
+                        }
+                        self.mouse_right_down = true
                     }
-                    self.mouse_right_down = true
-                },
-                MouseButton::Middle => {
-                    self.mouse_middle_click = false;
-                    if !self.mouse_middle_down {
-                        self.mouse_middle_click = true
+                    MouseButton::Middle => {
+                        if !self.mouse_middle_down {
+                            self.mouse_middle_click = true
+                        }
+                        self.mouse_middle_down = true
                     }
-                    self.mouse_middle_down = true
+                    _ => {}
                 }
-                _ => {}
-            },
-            MouseEvent::ButtonRelease { x, y, btn } => match btn {
-                MouseButton::Left => self.mouse_left_down = false,
-                MouseButton::Right => self.mouse_right_down = false,
-                MouseButton::Middle => self.mouse_middle_down = false,
-                _ => {}
-            },
+            }
+            MouseEvent::ButtonRelease { x, y, btn } => {
+                self.mouse_x = *x as u32;
+                self.mouse_y = *y as u32;
+                match btn {
+                    MouseButton::Left => self.mouse_left_down = false,
+                    MouseButton::Right => self.mouse_right_down = false,
+                    MouseButton::Middle => self.mouse_middle_down = false,
+                    _ => {}
+                }
+            }
             MouseEvent::NewPosition { x, y } => {
                 self.mouse_x = *x;
                 self.mouse_y = *y;
