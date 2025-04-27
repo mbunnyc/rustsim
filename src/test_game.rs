@@ -23,30 +23,29 @@ impl TestGame {
 
 impl Game for TestGame {
     fn update_tick(&mut self) {
+        self.input.new_frame();
+
         let amt = 0.1;
-        if self.up_key_held {
+        if self.input.up_key_held {
             self.cam.pos.z += amt;
         }
-        if self.down_key_held {
+        if self.input.down_key_held {
             self.cam.pos.z -= amt;
         }
-        if self.left_key_held {
+        if self.input.left_key_held {
             self.cam.pos.x -= amt;
         }
-        if self.right_key_held
+        if self.input.right_key_held
         /*|| self.mouse_left_click*/
         {
             self.cam.pos.x += amt;
         }
-        if self.shift_key_held {
+        if self.input.shift_key_held {
             self.cam.pos.y -= amt;
         }
-        if self.space_key_held {
+        if self.input.space_key_held {
             self.cam.pos.y += amt;
-        }
-        self.mouse_left_click = false;
-        self.mouse_right_click = false;
-        self.mouse_middle_click = false;
+        }       
         
         self.dith_sh.time += 0.01;
     }

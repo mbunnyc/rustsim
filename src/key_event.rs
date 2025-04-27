@@ -52,6 +52,12 @@ impl InputHandler {
         }
     }
 
+    pub fn new_frame(&mut self) {
+        self.mouse_left_click = false;
+        self.mouse_right_click = false;
+        self.mouse_middle_click = false;
+    }
+
     pub fn handle_key_event(&mut self, key_ev: &KeyEvent) {
         let state = matches!(key_ev, KeyEvent::Pressed { .. });
         let key_held = match key_ev {
