@@ -28,7 +28,6 @@ impl Triangle {
 
         a * v1.y + b * v2.y + c * v3.y
     }
-
     pub fn create_wall(
         bottom_left: &Vector3,
         length: f32,
@@ -38,40 +37,42 @@ impl Triangle {
     ) -> Vec<Triangle> {
         // Convert rotation from degrees to radians
         let rotation_rad = rotation_deg.to_radians();
-
+    
         // Calculate the direction vector based on rotation
         let direction_x = rotation_rad.cos();
         let direction_z = rotation_rad.sin();
-
+    
         // Calculate the four corners of the wall
         let bottom_right = Vector3::new(
             bottom_left.x + direction_x * length,
             bottom_left.y,
             bottom_left.z + direction_z * length,
         );
-
+    
         let top_left = Vector3::new(bottom_left.x, bottom_left.y + height, bottom_left.z);
-
+    
         let top_right = Vector3::new(bottom_right.x, bottom_right.y + height, bottom_right.z);
+    
+        // Calculate texture coordinates based on wall dimensions
+        let tex_scale = 1.0; // Adjust this to control texture tiling
+        let tex_width = length * tex_scale;
+        let tex_height = height * tex_scale;
 
-        // Create two triangles to form the wall
-
+        // Create two triangles to form the wall, with vertices in counter-clockwise order
+        // when viewed from the front of the wall
         vec![
-            // First triangle (bottom-left triangle)
             Triangle::new(
-                Vertex::new(bottom_left, &Vector2::new(0.0, 0.0), &color),
-                Vertex::new(&bottom_right, &Vector2::new(1.0, 0.0), &color),
-                Vertex::new(&top_left, &Vector2::new(0.0, 1.0), &color),
+                Vertex::new(&bottom_right, &Vector2::new(tex_width, 0.0), color),
+                Vertex::new(&top_left, &Vector2::new(0.0, tex_height), color), 
+                Vertex::new(&top_right, &Vector2::new(tex_width, tex_height), color),
             ),
-            // Second triangle (top-right triangle)
             Triangle::new(
-                Vertex::new(&bottom_right, &Vector2::new(1.0, 0.0), &color),
-                Vertex::new(&top_right, &Vector2::new(1.0, 1.0), &color),
-                Vertex::new(&top_left, &Vector2::new(0.0, 1.0), &color),
+                Vertex::new(&bottom_right, &Vector2::new(tex_width, 0.0), color),
+                Vertex::new(&top_left, &Vector2::new(0.0, tex_height), color),
+                Vertex::new(&bottom_left, &Vector2::new(0.0, 0.0), color),
             ),
         ]
     }
-
     // Helper function to create a floor rectangle from two points
     pub fn create_floor_rect(
         start: Vector2,

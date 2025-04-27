@@ -4,22 +4,26 @@ pub trait PixelShader {
     fn process(&self, pp: &PixelPlacement, triangle: &Triangle) -> PixelPlacement;
 }
 
-//TODO: move these into own file later
-pub struct RainbowShader {
-    time: f32,
-    speed: f32,
+pub struct SuperShader {
+    child_shaders: Vec<Box<dyn PixelShader>>,
 }
 
-impl RainbowShader {
-    pub fn new(speed: f32) -> Self {
-        RainbowShader {
-            time: 0.0,
-            speed,
-        }
+impl SuperShader {
+    pub fn new(child_shaders: Vec<Box<dyn PixelShader>>) -> Self {
+        SuperShader { child_shaders }
     }
 }
 
-// Fixed RainbowShader implementation with corrected HSV to RGB conversion
+impl PixelShader for SuperShader {
+    fn process(&self, pp: &PixelPlacement, triangle: &Triangle) -> PixelPlacement {
+        let mut result = pp.clone();
+        for shader in &self.child_shaders {
+            result = shader.process(&result, triangle);
+        }
+        result
+    }
+}
+
 pub struct TexturedRainbowShader {
     time: f32,
     speed: f32,
