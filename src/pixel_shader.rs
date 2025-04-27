@@ -25,7 +25,7 @@ impl PixelShader for SuperShader {
 }
 
 pub struct TexturedRainbowShader {
-    time: f32,
+    pub time: f32,
     speed: f32,
 }
 
