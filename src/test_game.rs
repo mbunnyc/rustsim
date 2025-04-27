@@ -95,7 +95,7 @@ impl Game for TestGame {
 
     fn mouse_event(&mut self, mouse_ev: &MouseEvent) {
         match mouse_ev {
-            MouseEvent::ButtonDown { btn } => match btn {
+            MouseEvent::ButtonDown { x, y, btn } => match btn {
                 MouseButton::Left => {
                     self.mouse_left_click = false;
                     if !self.mouse_left_down {
@@ -119,7 +119,7 @@ impl Game for TestGame {
                 }
                 _ => {}
             },
-            MouseEvent::ButtonRelease { btn } => match btn {
+            MouseEvent::ButtonRelease { x, y, btn } => match btn {
                 MouseButton::Left => self.mouse_left_down = false,
                 MouseButton::Right => self.mouse_right_down = false,
                 MouseButton::Middle => self.mouse_middle_down = false,

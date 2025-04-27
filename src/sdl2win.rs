@@ -1,3 +1,5 @@
+use crate::mouse_button::MouseButton;
+use crate::mouse_event::MouseEvent;
 use crate::screen::{SCREEN_HEIGHT, SCREEN_WIDTH};
 use crate::{game::Game, key_event::KeyEvent, keycode::KeyCode, screen::Screen, window::Window};
 
@@ -50,6 +52,36 @@ impl Window for SDL2Window {
                         if let Some(key) = KeyCode::from_sdl2_key(keycode) {
                             game.key_event(&KeyEvent::Released { key });
                         }
+                    }
+                    Event::MouseButtonDown { timestamp: _, window_id: _, which: _, mouse_btn, clicks: _, x, y } => {
+                        game.mouse_event(&MouseEvent::ButtonDown {
+                            x: x as u32,
+                            y: y as u32,
+                            btn: match mouse_btn {
+                                sdl2::mouse::MouseButton::Left => MouseButton::Left,
+                                sdl2::mouse::MouseButton::Right => MouseButton::Right,
+                                sdl2::mouse::MouseButton::Middle => MouseButton::Middle,
+                                _ => MouseButton::Unknown,
+                            },
+                        });
+                    }
+                    Event::MouseButtonUp { timestamp: _, window_id: _, which: _, mouse_btn, clicks: _, x, y } => {
+                        game.mouse_event(&MouseEvent::ButtonRelease {
+                            x: x as u32,
+                            y: y as u32,
+                            btn: match mouse_btn {
+                                sdl2::mouse::MouseButton::Left => MouseButton::Left,
+                                sdl2::mouse::MouseButton::Right => MouseButton::Right,
+                                sdl2::mouse::MouseButton::Middle => MouseButton::Middle,
+                                _ => MouseButton::Unknown,
+                            },
+                        });
+                    }
+                    Event::MouseMotion { timestamp: _, window_id: _, which: _, mousestate: _, x, y, xrel: _, yrel: _ } => {
+                        game.mouse_event(&MouseEvent::NewPosition {
+                            x: x as u32,
+                            y: y as u32,
+                        });
                     }
                     _ => {}
                 }
