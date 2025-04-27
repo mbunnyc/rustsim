@@ -185,20 +185,20 @@ impl Triangle {
     }
 
     pub fn project_and_fill(&self, screen: &mut Screen, camera: &Camera, shader: &dyn PixelShader) {
-        // Check if triangle is behind the camera
-        let v1_rel = Vector3::subtract(&self.v1.pos, &camera.pos);
-        let v2_rel = Vector3::subtract(&self.v2.pos, &camera.pos);
-        let v3_rel = Vector3::subtract(&self.v3.pos, &camera.pos);
+        // // Check if triangle is behind the camera
+        // let v1_rel = Vector3::subtract(&self.v1.pos, &camera.pos);
+        // let v2_rel = Vector3::subtract(&self.v2.pos, &camera.pos);
+        // let v3_rel = Vector3::subtract(&self.v3.pos, &camera.pos);
 
-        let forward = Vector3::normalize(&Vector3::subtract(&camera.pointing_at, &camera.pos));
+        // let forward = Vector3::normalize(&Vector3::subtract(&camera.pointing_at, &camera.pos));
 
-        // If all vertices are behind the camera, don't render
-        if Vector3::dot(&v1_rel, &forward) < 0.0
-            && Vector3::dot(&v2_rel, &forward) < 0.0
-            && Vector3::dot(&v3_rel, &forward) < 0.0
-        {
-            return;
-        }
+        // // If all vertices are behind the camera, don't render
+        // if Vector3::dot(&v1_rel, &forward) < 0.0
+        //     && Vector3::dot(&v2_rel, &forward) < 0.0
+        //     && Vector3::dot(&v3_rel, &forward) < 0.0
+        // {
+        //     return;
+        // }
 
         let projected_triangle = self.with_applied_perspective(camera, SCREEN_WIDTH, SCREEN_HEIGHT);
         
@@ -221,7 +221,6 @@ impl Triangle {
         let fov_radians = camera.fov.to_radians();
         let tan_half_fov = (fov_radians / 2.0).tan();
 
-        // Define near and far planes
         const NEAR_PLANE: f32 = 0.1;
         const FAR_PLANE: f32 = 20.0;
 
@@ -232,16 +231,13 @@ impl Triangle {
             let camera_y = Vector3::dot(&relative_pos, &up);
             let camera_z = Vector3::dot(&relative_pos, &forward);
 
-            // Proper near plane handling
             if camera_z < NEAR_PLANE || camera_z > FAR_PLANE {
                 return None;
             }
 
-            // Perspective division with proper near/far plane handling
             let ndc_x = camera_x / (tan_half_fov * camera_z);
             let ndc_y = camera_y / (tan_half_fov * camera_z / aspect_ratio);
 
-            // Convert to screen coordinates
             let screen_x = (ndc_x * 0.5 + 0.5) * screen_width as f32;
             let screen_y = (1.0 - (ndc_y * 0.5 + 0.5)) * screen_height as f32;
 
@@ -251,24 +247,6 @@ impl Triangle {
                 &vertex.color,
             ))
         };
-
-        let transparent_vert = Some(Vertex {
-            pos: Vector3 {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0
-            },
-            texture_coord: Vector2 {
-                x: 0.0,
-                y: 0.0
-            },
-            color: Color {
-                r: 0,
-                g: 0,
-                b: 0,
-                a: 0
-            }
-        });
 
         let projected_v1 = project_vertex(&self.v1);
         let projected_v2 = project_vertex(&self.v2);
