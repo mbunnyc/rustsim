@@ -12,7 +12,7 @@ impl PixelShader for DitherShader {
                 r: pp.color.r,
                 g: pp.color.g,
                 b: pp.color.b,
-                a: if alt && pp.x % 2 == 0 { 0 } else { pp.color.a },
+                a: if alt && pp.x % 2 != 0 { 0 } else { pp.color.a },
             },
         }
     }
