@@ -201,7 +201,10 @@ impl Triangle {
         }
 
         let projected_triangle = self.with_applied_perspective(camera, SCREEN_WIDTH, SCREEN_HEIGHT);
-        projected_triangle.fill(screen, shader);
+        
+        if let Some(triangle) = projected_triangle {
+            triangle.fill(screen, shader);
+        }
     }
 
     fn with_applied_perspective(
@@ -209,7 +212,7 @@ impl Triangle {
         camera: &Camera,
         screen_width: usize,
         screen_height: usize,
-    ) -> Triangle {
+    ) -> Option<Triangle> {
         let forward = Vector3::normalize(&Vector3::subtract(&camera.pointing_at, &camera.pos));
         let right = Vector3::normalize(&Vector3::cross(&forward, &Vector3::new(0.0, 1.0, 0.0)));
         let up = Vector3::cross(&right, &forward);
@@ -220,9 +223,9 @@ impl Triangle {
 
         // Define near and far planes
         const NEAR_PLANE: f32 = 0.1;
-        const FAR_PLANE: f32 = 100.0;
+        const FAR_PLANE: f32 = 20.0;
 
-        let project_vertex = |vertex: &Vertex| -> Vertex {
+        let project_vertex = |vertex: &Vertex| -> Option<Vertex> {
             let relative_pos = Vector3::subtract(&vertex.pos, &camera.pos);
 
             let camera_x = Vector3::dot(&relative_pos, &right);
@@ -230,13 +233,8 @@ impl Triangle {
             let camera_z = Vector3::dot(&relative_pos, &forward);
 
             // Proper near plane handling
-            if camera_z < NEAR_PLANE {
-                // Return a vertex that will be off-screen
-                return Vertex::new(
-                    &Vector3::new(-1.0, -1.0, NEAR_PLANE),
-                    &vertex.texture_coord,
-                    &vertex.color,
-                );
+            if camera_z < NEAR_PLANE || camera_z > FAR_PLANE {
+                return None;
             }
 
             // Perspective division with proper near/far plane handling
@@ -247,17 +245,41 @@ impl Triangle {
             let screen_x = (ndc_x * 0.5 + 0.5) * screen_width as f32;
             let screen_y = (1.0 - (ndc_y * 0.5 + 0.5)) * screen_height as f32;
 
-            Vertex::new(
+            Some(Vertex::new(
                 &Vector3::new(screen_x, screen_y, camera_z),
                 &vertex.texture_coord,
                 &vertex.color,
-            )
+            ))
         };
+
+        let transparent_vert = Some(Vertex {
+            pos: Vector3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0
+            },
+            texture_coord: Vector2 {
+                x: 0.0,
+                y: 0.0
+            },
+            color: Color {
+                r: 0,
+                g: 0,
+                b: 0,
+                a: 0
+            }
+        });
 
         let projected_v1 = project_vertex(&self.v1);
         let projected_v2 = project_vertex(&self.v2);
         let projected_v3 = project_vertex(&self.v3);
+        if projected_v1.is_none() || projected_v2.is_none() || projected_v3.is_none() {
+            return None;
+        }
+        let projected_v1 = projected_v1.unwrap();
+        let projected_v2 = projected_v2.unwrap();
+        let projected_v3 = projected_v3.unwrap();
 
-        Triangle::new(projected_v1, projected_v2, projected_v3)
+        Some(Triangle::new(projected_v1, projected_v2, projected_v3))
     }
 }

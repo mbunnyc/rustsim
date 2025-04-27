@@ -1,5 +1,5 @@
 use crate::{
-    camera::Camera, color::Color, dither_shader::DitherShader, draw_list::DrawList, dummy_passthru_shader::DummyPassthruShader, even_line_missing_shader::EvenLineMissingShader, game::Game, key_event::KeyEvent, keycode::KeyCode, mouse_event::MouseEvent, pixel_shader::RainbowShader, screen::Screen, triangle::Triangle, vec2::Vector2, vec3::Vector3
+    camera::Camera, color::Color, draw_list::DrawList, dummy_passthru_shader::DummyPassthruShader, even_line_missing_shader::EvenLineMissingShader, game::Game, key_event::KeyEvent, keycode::KeyCode, mouse_button::MouseButton, mouse_event::MouseEvent, pixel_shader::RainbowShader, screen::Screen, triangle::Triangle, vec2::Vector2, vec3::Vector3
 };
 
 pub struct TestGame {
@@ -14,6 +14,14 @@ pub struct TestGame {
     pub s_key_held: bool,
     pub a_key_held: bool,
     pub d_key_held: bool,
+    pub mouse_x: u32,
+    pub mouse_y: u32,
+    pub mouse_left_down: bool,
+    pub mouse_left_click: bool,
+    pub mouse_right_down: bool,
+    pub mouse_right_click: bool,
+    pub mouse_middle_down: bool,
+    pub mouse_middle_click: bool,
 }
 
 impl TestGame {
@@ -30,6 +38,14 @@ impl TestGame {
             s_key_held: false,
             a_key_held: false,
             d_key_held: false,
+            mouse_x: 0,
+            mouse_y: 0,
+            mouse_left_down: false,
+            mouse_left_click: false,
+            mouse_right_down: false,
+            mouse_right_click: false,
+            mouse_middle_down: false,
+            mouse_middle_click: false,
         }
     }
 }
@@ -74,6 +90,45 @@ impl Game for TestGame {
         }
         if self.space_key_held {
             self.cam.pos.y += amt;
+        }
+    }
+
+    fn mouse_event(&mut self, mouse_ev: &MouseEvent) {
+        match mouse_ev {
+            MouseEvent::ButtonDown { btn } => match btn {
+                MouseButton::Left => {
+                    self.mouse_left_click = false;
+                    if !self.mouse_left_down {
+                        self.mouse_left_click = true
+                    }
+                    self.mouse_left_down = true
+                },
+                MouseButton::Right => {
+                    self.mouse_right_click = false;
+                    if !self.mouse_right_down {
+                        self.mouse_right_click = true
+                    }
+                    self.mouse_right_down = true
+                },
+                MouseButton::Middle => {
+                    self.mouse_middle_click = false;
+                    if !self.mouse_middle_down {
+                        self.mouse_middle_click = true
+                    }
+                    self.mouse_middle_down = true
+                }
+                _ => {}
+            },
+            MouseEvent::ButtonRelease { btn } => match btn {
+                MouseButton::Left => self.mouse_left_down = false,
+                MouseButton::Right => self.mouse_right_down = false,
+                MouseButton::Middle => self.mouse_middle_down = false,
+                _ => {}
+            },
+            MouseEvent::NewPosition { x, y } => {
+                self.mouse_x = *x;
+                self.mouse_y = *y;
+            }
         }
     }
 
@@ -142,6 +197,4 @@ impl Game for TestGame {
 
         draw_list.draw(screen, &self.cam, &dith_sh);
     }
-
-    fn mouse_event(&mut self, mouse_ev: &MouseEvent) {}
 }
