@@ -1,7 +1,5 @@
 use crate::{
-    camera::Camera, color::Color, draw_list::DrawList, dummy_passthru_shader::DummyPassthruShader,
-    even_line_missing_shader::EvenLineMissingShader, game::Game, key_event::{InputHandler, KeyEvent}, mouse_event::MouseEvent,
-    pixel_shader::{SuperShader, TexturedRainbowShader}, screen::Screen, triangle::Triangle, vec2::Vector2, vec3::Vector3,
+    camera::Camera, color::Color, draw_list::DrawList, dummy_passthru_shader::DummyPassthruShader, even_line_missing_shader::EvenLineMissingShader, game::Game, input_handler::InputHandler, key_event::KeyEvent, mouse_event::MouseEvent, pixel_shader::{SuperShader, TexturedRainbowShader}, screen::Screen, triangle::Triangle, vec2::Vector2, vec3::Vector3
 };
 
 pub struct TestGame {

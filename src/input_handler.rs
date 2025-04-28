@@ -1,4 +1,4 @@
-use crate::key_event::KeyState;
+use crate::{key_event::{KeyEvent, KeyState}, keycode::KeyCode, mouse_button::MouseButton, mouse_event::MouseEvent};
 
 
 pub struct InputHandler {    
