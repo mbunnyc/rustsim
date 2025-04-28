@@ -3,7 +3,7 @@ use crate::{
     triangle::Triangle,
 };
 
-pub const SCREEN_WIDTH: usize = 640;
+pub const SCREEN_WIDTH: usize = 840;
 pub const SCREEN_HEIGHT: usize = 480;
 pub const SCREEN_PIXEL_COUNT: usize = SCREEN_WIDTH * SCREEN_HEIGHT;
 

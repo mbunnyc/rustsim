@@ -214,8 +214,8 @@ impl Triangle {
         screen_width: usize,
         screen_height: usize,
     ) -> Option<Triangle> {
-        let forward = Vector3::normalize(&Vector3::subtract(&camera.pointing_at, &camera.pos));
-        let right = Vector3::normalize(&Vector3::cross(&forward, &Vector3::new(0.0, 1.0, 0.0)));
+        let forward = Vector3::normalizeV(&(camera.pointing_at - camera.pos));
+        let right = Vector3::normalizeV(&forward.cross(&Vector3::new(0.0, 1.0, 0.0)));
         let up = Vector3::cross(&right, &forward);
 
         let aspect_ratio = screen_width as f32 / screen_height as f32;

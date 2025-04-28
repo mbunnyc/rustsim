@@ -6,72 +6,93 @@ pub enum KeyEvent {
     Released { key: KeyCode },
 }
 
+//mouse or kb
+pub struct KeyState {
+    pub click: bool,
+    pub pressed: bool,
+    pub released: bool,
+}
+
+impl KeyState {
+    pub fn new() -> Self {
+        Self {
+            click: false,
+            pressed: false,
+            released: false,
+        }
+    }
+}
+
 pub struct InputHandler {    
-    pub up_key_held: bool,
-    pub down_key_held: bool,
-    pub left_key_held: bool,
-    pub right_key_held: bool,
-    pub space_key_held: bool,
-    pub shift_key_held: bool,
-    pub w_key_held: bool,
-    pub s_key_held: bool,
-    pub a_key_held: bool,
-    pub d_key_held: bool,
+    pub up: KeyState,
+    pub down: KeyState,
+    pub left: KeyState,
+    pub right: KeyState,
+    
+    pub space: KeyState,
+    
+    pub shift: KeyState,
+    
+    pub w: KeyState,
+    pub s: KeyState,
+    pub a: KeyState,
+    pub d: KeyState,
+    
+    pub mouse_left: KeyState,
+    pub mouse_middle: KeyState,
+    pub mouse_right: KeyState,
+    
     pub mouse_x: u32,
+    pub mouse_x_last: u32,
+    
     pub mouse_y: u32,
-    pub mouse_left_down: bool,
-    pub mouse_left_click: bool,
-    pub mouse_right_down: bool,
-    pub mouse_right_click: bool,
-    pub mouse_middle_down: bool,
-    pub mouse_middle_click: bool,
+    pub mouse_y_last: u32,
 }
 
 //get more useful input from events
 impl InputHandler {
     pub fn new() -> Self {
         Self {
-            up_key_held: false,
-            down_key_held: false,
-            left_key_held: false,
-            right_key_held: false,
-            space_key_held: false,
-            shift_key_held: false,
-            w_key_held: false,
-            s_key_held: false,
-            a_key_held: false,
-            d_key_held: false,
+            up: KeyState::new(),
+            down: KeyState::new(),
+            left: KeyState::new(),
+            right: KeyState::new(),
+            space: KeyState::new(),
+            shift: KeyState::new(),
+            w: KeyState::new(),
+            a: KeyState::new(),
+            s: KeyState::new(),
+            d: KeyState::new(),
+            mouse_left: KeyState::new(),
+            mouse_middle: KeyState::new(),
+            mouse_right: KeyState::new(),
             mouse_x: 0,
+            mouse_x_last: 0,
             mouse_y: 0,
-            mouse_left_down: false,
-            mouse_left_click: false,
-            mouse_right_down: false,
-            mouse_right_click: false,
-            mouse_middle_down: false,
-            mouse_middle_click: false,
+            mouse_y_last: 0,
         }
     }
 
     pub fn new_frame(&mut self) {
-        self.mouse_left_click = false;
-        self.mouse_right_click = false;
-        self.mouse_middle_click = false;
+        self.mouse_left.click = false;
+        self.mouse_right.click = false;
+        self.mouse_middle.click = false;
     }
 
     pub fn handle_key_event(&mut self, key_ev: &KeyEvent) {
         let state = matches!(key_ev, KeyEvent::Pressed { .. });
         let key_held = match key_ev {
             KeyEvent::Pressed { key } | KeyEvent::Released { key } => match key {
-                KeyCode::Up => &mut self.up_key_held,
-                KeyCode::Down => &mut self.down_key_held,
-                KeyCode::Left => &mut self.left_key_held,
-                KeyCode::Right => &mut self.right_key_held,
-                KeyCode::Space => &mut self.space_key_held,
-                KeyCode::LShift => &mut self.shift_key_held,
-                KeyCode::W => &mut self.w_key_held,
-                KeyCode::S => &mut self.s_key_held,
-                KeyCode::A => &mut self.a_key_held,
-                KeyCode::D => &mut self.d_key_held,
+                KeyCode::Up => &mut self.up.pressed,
+                KeyCode::Down => &mut self.down.pressed,
+                KeyCode::Left => &mut self.left.pressed,
+                KeyCode::Right => &mut self.right.pressed,
+                KeyCode::Space => &mut self.space.pressed,
+                KeyCode::LShift => &mut self.shift.pressed,
+                KeyCode::W => &mut self.w.pressed,
+                KeyCode::S => &mut self.s.pressed,
+                KeyCode::A => &mut self.a.pressed,
+                KeyCode::D => &mut self.d.pressed,
                 _ => return,
             },
         };
@@ -81,41 +102,62 @@ impl InputHandler {
     pub fn handle_mouse_event(&mut self, mouse_ev: &MouseEvent) {
         match mouse_ev {
             MouseEvent::ButtonDown { x, y, btn } => {
+                self.mouse_x_last = self.mouse_x;
+                self.mouse_y_last = self.mouse_y;
                 self.mouse_x = *x as u32;
                 self.mouse_y = *y as u32;
                 match btn {
                     MouseButton::Left => {
-                        if !self.mouse_left_down {
-                            self.mouse_left_click = true
+                        if !self.mouse_left.pressed {
+                            self.mouse_left.click = true
                         }
-                        self.mouse_left_down = true
-                    }
-                    MouseButton::Right => {
-                        if !self.mouse_right_down {
-                            self.mouse_right_click = true
-                        }
-                        self.mouse_right_down = true
+                        self.mouse_left.pressed = true
                     }
                     MouseButton::Middle => {
-                        if !self.mouse_middle_down {
-                            self.mouse_middle_click = true
+                        if !self.mouse_middle.pressed {
+                            self.mouse_middle.click = true
                         }
-                        self.mouse_middle_down = true
+                        self.mouse_middle.pressed = true
+                    }
+                    MouseButton::Right => {
+                        if !self.mouse_right.pressed {
+                            self.mouse_right.click = true
+                        }
+                        self.mouse_right.pressed = true
                     }
                     _ => {}
                 }
             }
             MouseEvent::ButtonRelease { x, y, btn } => {
+                self.mouse_x_last = self.mouse_x;
+                self.mouse_y_last = self.mouse_y;
                 self.mouse_x = *x as u32;
                 self.mouse_y = *y as u32;
                 match btn {
-                    MouseButton::Left => self.mouse_left_down = false,
-                    MouseButton::Right => self.mouse_right_down = false,
-                    MouseButton::Middle => self.mouse_middle_down = false,
+                    MouseButton::Left => {
+                        if self.mouse_left.pressed {
+                            self.mouse_left.released = true
+                        }
+                        self.mouse_left.pressed = false
+                    }
+                    MouseButton::Middle => {
+                        if self.mouse_middle.pressed {
+                            self.mouse_middle.released = true
+                        }
+                        self.mouse_middle.pressed = false
+                    }
+                    MouseButton::Right => {
+                        if self.mouse_right.pressed {
+                            self.mouse_right.released = true
+                        }
+                        self.mouse_right.pressed = false
+                    }
                     _ => {}
                 }
             }
             MouseEvent::NewPosition { x, y } => {
+                self.mouse_x_last = self.mouse_x;
+                self.mouse_y_last = self.mouse_y;
                 self.mouse_x = *x;
                 self.mouse_y = *y;
             }

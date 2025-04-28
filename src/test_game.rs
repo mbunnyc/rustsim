@@ -1,8 +1,7 @@
 use crate::{
     camera::Camera, color::Color, draw_list::DrawList, dummy_passthru_shader::DummyPassthruShader,
-    even_line_missing_shader::EvenLineMissingShader, game::Game, key_event::{InputHandler, KeyEvent},
-    keycode::KeyCode, mouse_button::MouseButton, mouse_event::MouseEvent,
-    pixel_shader::TexturedRainbowShader, screen::Screen, triangle::Triangle, vec2::Vector2, vec3::Vector3,
+    even_line_missing_shader::EvenLineMissingShader, game::Game, key_event::{InputHandler, KeyEvent}, mouse_event::MouseEvent,
+    pixel_shader::{SuperShader, TexturedRainbowShader}, screen::Screen, triangle::Triangle, vec2::Vector2, vec3::Vector3,
 };
 
 pub struct TestGame {
@@ -26,24 +25,24 @@ impl Game for TestGame {
         self.input.new_frame();
 
         let amt = 0.1;
-        if self.input.up_key_held {
+        if self.input.up.pressed {
             self.cam.pos.z += amt;
         }
-        if self.input.down_key_held {
+        if self.input.down.pressed {
             self.cam.pos.z -= amt;
         }
-        if self.input.left_key_held {
+        if self.input.left.pressed {
             self.cam.pos.x -= amt;
         }
-        if self.input.right_key_held
+        if self.input.right.pressed
         /*|| self.mouse_left_click*/
         {
             self.cam.pos.x += amt;
         }
-        if self.input.shift_key_held {
+        if self.input.shift.pressed {
             self.cam.pos.y -= amt;
         }
-        if self.input.space_key_held {
+        if self.input.space.pressed {
             self.cam.pos.y += amt;
         }       
         
@@ -98,18 +97,20 @@ impl Game for TestGame {
 
         let elm_sh = EvenLineMissingShader;
 
-        for triangle in floor2_tris {
-            screen.draw_triangle(&triangle, &self.cam, &elm_sh);
-        }
+        let super_shader = SuperShader::new(vec![
+            Box::new(EvenLineMissingShader),
+            //Box::new(TexturedRainbowShader::new(5.0)),
+        ]);
 
-        // Draw both triangles that make up the floor
-        for triangle in floor_tris {
-            screen.draw_triangle(&triangle, &self.cam, &sh);
-        }
+        let mut elm_dl = DrawList::new();
+        elm_dl.add(&floor2_tris);
+        elm_dl.add(&wall1_tris);
 
-        for triangle in wall1_tris {
-            screen.draw_triangle(&triangle, &self.cam, &elm_sh);
-        }
+        elm_dl.draw(screen, &self.cam, &super_shader);
+
+        let mut sh_dl = DrawList::new();
+        sh_dl.add(&floor_tris);
+        sh_dl.draw(screen, &self.cam, &sh);
 
         draw_list.draw(screen, &self.cam, &self.dith_sh);
     }
