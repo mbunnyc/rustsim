@@ -16,7 +16,7 @@ impl Triangle {
         Self { v1, v2, v3 }
     }
 
-    pub fn z_at(&self, x: f32, y: f32) -> f32 {
+    /*pub fn z_at(&self, x: f32, y: f32) -> f32 {
         let v1 = &self.v1.pos;
         let v2 = &self.v2.pos;
         let v3 = &self.v3.pos;
@@ -27,7 +27,7 @@ impl Triangle {
         let c = 1.0 - a - b;
 
         a * v1.y + b * v2.y + c * v3.y
-    }
+    }*/
     pub fn create_wall(
         bottom_left: &Vector3,
         length: f32,
@@ -214,8 +214,8 @@ impl Triangle {
         screen_width: usize,
         screen_height: usize,
     ) -> Option<Triangle> {
-        let forward = Vector3::normalizeV(&(camera.pointing_at - camera.pos));
-        let right = Vector3::normalizeV(&forward.cross(&Vector3::new(0.0, 1.0, 0.0)));
+        let forward = Vector3::normalize_v(&(camera.pointing_at - camera.pos));
+        let right = Vector3::normalize_v(&forward.cross(&Vector3::new(0.0, 1.0, 0.0)));
         let up = Vector3::cross(&right, &forward);
 
         let aspect_ratio = screen_width as f32 / screen_height as f32;

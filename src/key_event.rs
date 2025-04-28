@@ -1,4 +1,4 @@
-use crate::{keycode::KeyCode, mouse_button::MouseButton, mouse_event::MouseEvent};
+use crate::keycode::KeyCode;
 
 #[derive(Debug)]
 pub enum KeyEvent {

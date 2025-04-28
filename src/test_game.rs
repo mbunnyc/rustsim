@@ -93,7 +93,7 @@ impl Game for TestGame {
 
         draw_list.add(&wall2_tris);
 
-        let elm_sh = EvenLineMissingShader;
+        //let elm_sh = EvenLineMissingShader;
 
         let super_shader = SuperShader::new(vec![
             Box::new(EvenLineMissingShader),

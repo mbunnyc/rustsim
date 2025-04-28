@@ -6,7 +6,7 @@ pub struct Rect {
 }
 
 impl Rect {
-    pub fn clamped_to(&self, limit: Rect) -> Rect {
+    /*pub fn clamped_to(&self, limit: Rect) -> Rect {
         let mut size_diff = Vector2::new(0.0, 0.0);
         Rect {
             pos: Vector2::new(
@@ -36,5 +36,5 @@ impl Rect {
                 },
             ),
         }
-    }
+    }*/
 }

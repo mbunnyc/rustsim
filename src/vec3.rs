@@ -36,13 +36,13 @@ impl Vector3 {
         Vector3::new(a.x - b.x, a.y - b.y, a.z - b.z)
     }
 
-    pub fn cross2(a: &Vector3, b: &Vector3) -> Vector3 {
+    /*pub fn cross2(a: &Vector3, b: &Vector3) -> Vector3 {
         Vector3::new(
             a.y * b.z - a.z * b.y,
             a.z * b.x - a.x * b.z,
             a.x * b.y - a.y * b.x,
         )
-    }
+    }*/
 
     pub fn cross(&self, b: &Vector3) -> Vector3 {
         Vector3::new(
@@ -70,7 +70,7 @@ impl Vector3 {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
     }
 
-    pub fn normalizeV(&self) -> Vector3 {
+    pub fn normalize_v(&self) -> Vector3 {
         let len = self.length();
         if len > 0.0001 {
             Vector3::new(self.x / len, self.y / len, self.z / len)
