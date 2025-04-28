@@ -3,6 +3,7 @@ use sdl2win::SDL2Window;
 use test_game::TestGame;
 use window::Window;
 
+mod input_handler;
 mod texture;
 mod camera;
 mod color;
