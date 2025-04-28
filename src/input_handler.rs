@@ -1,5 +1,4 @@
-use crate::{key_event::{KeyEvent, KeyState}, keycode::KeyCode, mouse_button::MouseButton, mouse_event::MouseEvent};
-
+use crate::{key_event::{KeyEvent, KeyState}, keycode::KeyCode, mouse_button::MouseButton, mouse_event::MouseEvent, vec2::Vector2};
 
 pub struct InputHandler {    
     pub up: KeyState,
@@ -20,11 +19,9 @@ pub struct InputHandler {
     pub mouse_middle: KeyState,
     pub mouse_right: KeyState,
     
-    pub mouse_x: u32,
-    pub mouse_x_last: u32,
-    
-    pub mouse_y: u32,
-    pub mouse_y_last: u32,
+    pub mouse_pos: Vector2,
+    pub mouse_pos_last: Vector2,
+    pub mouse_delta: Vector2,
 }
 
 //get more useful input from events
@@ -44,10 +41,9 @@ impl InputHandler {
             mouse_left: KeyState::new(),
             mouse_middle: KeyState::new(),
             mouse_right: KeyState::new(),
-            mouse_x: 0,
-            mouse_x_last: 0,
-            mouse_y: 0,
-            mouse_y_last: 0,
+            mouse_pos: Vector2::new(0.0, 0.0),
+            mouse_pos_last: Vector2::new(0.0, 0.0),
+            mouse_delta: Vector2::new(0.0, 0.0),
         }
     }
 
@@ -55,6 +51,11 @@ impl InputHandler {
         self.mouse_left.click = false;
         self.mouse_right.click = false;
         self.mouse_middle.click = false;
+        self.mouse_left.released = false;
+        self.mouse_right.released = false;
+        self.mouse_middle.released = false;
+        self.mouse_delta.x = self.mouse_pos.x - self.mouse_pos_last.x;
+        self.mouse_delta.y = self.mouse_pos.y - self.mouse_pos_last.y;
     }
 
     pub fn handle_key_event(&mut self, key_ev: &KeyEvent) {
@@ -80,10 +81,10 @@ impl InputHandler {
     pub fn handle_mouse_event(&mut self, mouse_ev: &MouseEvent) {
         match mouse_ev {
             MouseEvent::ButtonDown { x, y, btn } => {
-                self.mouse_x_last = self.mouse_x;
-                self.mouse_y_last = self.mouse_y;
-                self.mouse_x = *x as u32;
-                self.mouse_y = *y as u32;
+                self.mouse_pos_last.x = self.mouse_pos.x;
+                self.mouse_pos_last.y = self.mouse_pos.y;
+                self.mouse_pos.x = *x as f32;
+                self.mouse_pos.y = *y as f32;
                 match btn {
                     MouseButton::Left => {
                         if !self.mouse_left.pressed {
@@ -107,10 +108,10 @@ impl InputHandler {
                 }
             }
             MouseEvent::ButtonRelease { x, y, btn } => {
-                self.mouse_x_last = self.mouse_x;
-                self.mouse_y_last = self.mouse_y;
-                self.mouse_x = *x as u32;
-                self.mouse_y = *y as u32;
+                self.mouse_pos_last.x = self.mouse_pos.x;
+                self.mouse_pos_last.y = self.mouse_pos.y;
+                self.mouse_pos.x = *x as f32;
+                self.mouse_pos.y = *y as f32;
                 match btn {
                     MouseButton::Left => {
                         if self.mouse_left.pressed {
@@ -134,10 +135,10 @@ impl InputHandler {
                 }
             }
             MouseEvent::NewPosition { x, y } => {
-                self.mouse_x_last = self.mouse_x;
-                self.mouse_y_last = self.mouse_y;
-                self.mouse_x = *x;
-                self.mouse_y = *y;
+                self.mouse_pos_last.x = self.mouse_pos.x;
+                self.mouse_pos_last.y = self.mouse_pos.y;
+                self.mouse_pos.x = *x as f32;
+                self.mouse_pos.y = *y as f32;
             }
         }
     }

@@ -45,6 +45,8 @@ impl Game for TestGame {
         }       
         
         self.dith_sh.time += 0.01;
+
+        self.cam.first_person_look(&self.input.mouse_delta);
     }
 
     fn render_tick(&self, screen: &mut Screen) {
