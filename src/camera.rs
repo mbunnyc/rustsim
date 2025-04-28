@@ -16,7 +16,7 @@ impl Camera {
     }
 
     pub fn first_person_look(&mut self, mouse_delta: &Vector2) {
-        let mouse_delta = mouse_delta.clone() * Vector2 { x: 0.01, y: 0.01 };
+        let mouse_delta = mouse_delta.clone() * Vector2 { x: 0.001, y: -0.001 };
         let mut direction = self.pointing_at - self.pos;
         let right = direction.cross(&Vector3::new(0.0, 1.0, 0.0)).normalizeV();
         let up = right.cross(&direction).normalize();

@@ -45,8 +45,6 @@ impl Game for TestGame {
         }       
         
         self.dith_sh.time += 0.01;
-
-        self.cam.first_person_look(&self.input.mouse_delta);
     }
 
     fn render_tick(&self, screen: &mut Screen) {
@@ -121,5 +119,10 @@ impl Game for TestGame {
     
     fn mouse_event(&mut self, mouse_ev: &MouseEvent) {
         self.input.handle_mouse_event(&mouse_ev);
+        
+
+        if self.input.mouse_left.pressed {
+            self.cam.first_person_look(&self.input.mouse_delta)
+        }
     }
 }
