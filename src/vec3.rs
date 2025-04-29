@@ -1,10 +1,25 @@
-use std::ops::{Add, Sub};
+use std::ops::{Add, Mul, Sub};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Vector3 {
     pub x: f32,
     pub y: f32,
     pub z: f32,
+}
+
+impl std::ops::SubAssign for Vector3 {
+    fn sub_assign(&mut self, rhs: Self) {
+        self.x -= rhs.x;
+        self.y -= rhs.y; 
+        self.z -= rhs.z;
+    }
+}
+impl Mul<f32> for Vector3 {
+    type Output = Vector3;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        Vector3::new(self.x * rhs, self.y * rhs, self.z * rhs)
+    }
 }
 
 impl Sub for Vector3 {

@@ -1,4 +1,4 @@
-use crate::{key_event::{KeyEvent, KeyState}, keycode::KeyCode, mouse_button::MouseButton, mouse_event::MouseEvent, vec2::Vector2};
+use crate::{key_event::{KeyEvent, KeyState}, keycode::KeyCode, mouse_button::MouseButton, mouse_event::MouseEvent, screen::{SCREEN_HEIGHT, SCREEN_WIDTH}, vec2::Vector2};
 
 pub struct InputHandler {    
     pub up: KeyState,
@@ -22,6 +22,7 @@ pub struct InputHandler {
     pub mouse_pos: Vector2,
     pub mouse_pos_last: Vector2,
     pub mouse_delta: Vector2,
+    pub mouse_pos_on_click: Vector2,
 }
 
 //get more useful input from events
@@ -44,6 +45,7 @@ impl InputHandler {
             mouse_pos: Vector2::new(0.0, 0.0),
             mouse_pos_last: Vector2::new(0.0, 0.0),
             mouse_delta: Vector2::new(0.0, 0.0),
+            mouse_pos_on_click: Vector2::new(0.0, 0.0),
         }
     }
 
@@ -81,14 +83,17 @@ impl InputHandler {
     pub fn handle_mouse_event(&mut self, mouse_ev: &MouseEvent) {
         match mouse_ev {
             MouseEvent::ButtonDown { x, y, btn } => {
+                
                 self.mouse_pos_last.x = self.mouse_pos.x;
                 self.mouse_pos_last.y = self.mouse_pos.y;
-                self.mouse_pos.x = *x as f32;
-                self.mouse_pos.y = *y as f32;
+                self.mouse_pos.x = (*x as f32).clamp(0.0, SCREEN_WIDTH as f32);
+                self.mouse_pos.y = (*y as f32).clamp(0.0, SCREEN_HEIGHT as f32);
                 match btn {
                     MouseButton::Left => {
                         if !self.mouse_left.pressed {
-                            self.mouse_left.click = true
+                            self.mouse_left.click = true;
+                            self.mouse_pos_on_click.x = self.mouse_pos.x;
+                            self.mouse_pos_on_click.y = self.mouse_pos.y;
                         }
                         self.mouse_left.pressed = true
                     }
@@ -108,10 +113,11 @@ impl InputHandler {
                 }
             }
             MouseEvent::ButtonRelease { x, y, btn } => {
+                
                 self.mouse_pos_last.x = self.mouse_pos.x;
                 self.mouse_pos_last.y = self.mouse_pos.y;
-                self.mouse_pos.x = *x as f32;
-                self.mouse_pos.y = *y as f32;
+                self.mouse_pos.x = (*x as f32).clamp(0.0, SCREEN_WIDTH as f32);
+                self.mouse_pos.y = (*y as f32).clamp(0.0, SCREEN_HEIGHT as f32);
                 match btn {
                     MouseButton::Left => {
                         if self.mouse_left.pressed {
@@ -137,8 +143,8 @@ impl InputHandler {
             MouseEvent::NewPosition { x, y } => {
                 self.mouse_pos_last.x = self.mouse_pos.x;
                 self.mouse_pos_last.y = self.mouse_pos.y;
-                self.mouse_pos.x = *x as f32;
-                self.mouse_pos.y = *y as f32;
+                self.mouse_pos.x = (*x as f32).clamp(0.0, SCREEN_WIDTH as f32);
+                self.mouse_pos.y = (*y as f32).clamp(0.0, SCREEN_HEIGHT as f32);
             }
         }
     }

@@ -106,7 +106,7 @@ impl PixelShader for DepthFogShader {
             r: ((1.0 - fog_factor) * pp.color.r as f32 + fog_factor * self.fog_color.r as f32) as u8,
             g: ((1.0 - fog_factor) * pp.color.g as f32 + fog_factor * self.fog_color.g as f32) as u8,
             b: ((1.0 - fog_factor) * pp.color.b as f32 + fog_factor * self.fog_color.b as f32) as u8,
-            a: pp.color.a,
+            a: ((1.0 - fog_factor) * pp.color.a as f32 + fog_factor * self.fog_color.a as f32) as u8,
         };
     }
 }

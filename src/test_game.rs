@@ -10,7 +10,7 @@ use crate::{
     key_event::KeyEvent,
     mouse_event::MouseEvent,
     pixel_shader::{SuperShader, TexturedRainbowShader},
-    screen::Screen,
+    screen::{Screen, SCREEN_HEIGHT, SCREEN_WIDTH},
     triangle::Triangle,
     vec2::Vector2,
     vec3::Vector3
@@ -109,7 +109,7 @@ impl Game for TestGame {
 
         let super_shader = SuperShader::new(vec![
             Box::new(EvenLineMissingShader),
-            Box::new(DitherShader),
+            //Box::new(DitherShader),
         ]);
 
         let mut elm_dl = DrawList::new();
@@ -123,7 +123,19 @@ impl Game for TestGame {
         sh_dl.draw(screen, &self.cam, &sh);
 
         draw_list.draw(screen, &self.cam, &self.dith_sh);
-    }
+
+        // Add this to the render_tick method
+        let big_floor = Triangle::create_floor_rect(
+            Vector2::new(-50.0, -50.0),
+            Vector2::new(100.0, 100.0), 
+            -5.0,
+            Color::new(0, 0, 0, 255)
+        );
+
+        let mut big_floor_dl = DrawList::new();
+        big_floor_dl.add(&big_floor);
+        big_floor_dl.draw(screen, &self.cam, &sh);            
+}
 
     fn key_event(&mut self, key_ev: &KeyEvent) {
         self.input.handle_key_event(&key_ev);
@@ -135,7 +147,10 @@ impl Game for TestGame {
         self.input.handle_mouse_event(&mouse_ev);
 
         if self.input.mouse_left.pressed {
-            self.cam.first_person_look(&self.input.mouse_delta)
+            self.cam.first_person_look(&self.input.mouse_delta)            
+        }
+        if self.input.mouse_right.pressed {
+            self.cam.drag_move(&self.input.mouse_pos_last, &self.input.mouse_pos)
         }
     }
 }

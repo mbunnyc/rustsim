@@ -223,7 +223,7 @@ impl Triangle {
         let tan_half_fov = (fov_radians / 2.0).tan();
 
         const NEAR_PLANE: f32 = 0.1;
-        const FAR_PLANE: f32 = 20.0;
+        const FAR_PLANE: f32 = 60.0;
 
         let project_vertex = |vertex: &Vertex| -> Option<Vertex> {
             let relative_pos = Vector3::subtract(&vertex.pos, &camera.pos);

@@ -1,9 +1,20 @@
-use std::ops::Mul;
+use std::ops::{Mul, Sub};
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Vector2 {
     pub x: f32,
     pub y: f32,
+}
+
+impl Sub for Vector2 {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
 }
 
 impl Mul for Vector2 {
