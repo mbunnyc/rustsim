@@ -1,7 +1,7 @@
 use crate::{color::Color, pixel_placement::PixelPlacement, triangle::Triangle};
 
 pub trait PixelShader {
-    fn process(&self, pp: &PixelPlacement, triangle: &Triangle) -> PixelPlacement;
+    fn process(&self, pp: &mut PixelPlacement, triangle: &Triangle);
 }
 
 pub struct SuperShader {
@@ -15,12 +15,11 @@ impl SuperShader {
 }
 
 impl PixelShader for SuperShader {
-    fn process(&self, pp: &PixelPlacement, triangle: &Triangle) -> PixelPlacement {
+    fn process(&self, pp: &mut PixelPlacement, triangle: &Triangle) {
         let mut result = pp.clone();
         for shader in &self.child_shaders {
-            result = shader.process(&result, triangle);
+            shader.process(&mut result, triangle);
         }
-        result
     }
 }
 
@@ -39,7 +38,10 @@ impl TexturedRainbowShader {
 }
 
 impl PixelShader for TexturedRainbowShader {
-    fn process(&self, pp: &PixelPlacement, triangle: &Triangle) -> PixelPlacement {
+    fn process(&self, pp: &mut PixelPlacement, triangle: &Triangle) {
+        if pp.color.a == 0 {
+            return;
+        }
         // Get barycentric coordinates for texture mapping
         let (u, v, _xx) = triangle.barycentric_coords(pp.x as f32, pp.y as f32);
         
@@ -64,15 +66,11 @@ impl PixelShader for TexturedRainbowShader {
             _ => (1.0, 1.0, 1.0),
         };
 
-        PixelPlacement {
-            x: pp.x,
-            y: pp.y,
-            color: Color {
-                r: (r * 255.0) as u8,
-                g: (g * 255.0) as u8,
-                b: (b * 255.0) as u8,
-                a: pp.color.a,
-            },
+        pp.color = Color {
+            r: (r * 255.0) as u8,
+            g: (g * 255.0) as u8,
+            b: (b * 255.0) as u8,
+            a: pp.color.a,
         }
     }
 }

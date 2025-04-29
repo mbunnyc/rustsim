@@ -3,27 +3,25 @@ use crate::{
     triangle::Triangle,
 };
 
-pub const SCREEN_WIDTH: usize = 840;
+pub const SCREEN_WIDTH: usize = 640;
 pub const SCREEN_HEIGHT: usize = 480;
 pub const SCREEN_PIXEL_COUNT: usize = SCREEN_WIDTH * SCREEN_HEIGHT;
 
 pub struct Screen {
-    pub pixels: Vec<Color>,
-    pub depth_buffer: Vec<f32>,
+    pub pixels: Box<[Color]>,
+    pub depth_buffer: Box<[f32]>
 }
 
 impl Screen {
     pub fn new() -> Screen {
         Screen {
-            pixels: vec![Color::new(0, 0, 0, 255); SCREEN_PIXEL_COUNT],
-            depth_buffer: vec![f32::INFINITY; SCREEN_PIXEL_COUNT],
+            pixels: vec![Color::new(0, 0, 0, 255); SCREEN_PIXEL_COUNT].into_boxed_slice(),
+            depth_buffer: vec![f32::INFINITY; SCREEN_PIXEL_COUNT].into_boxed_slice()
         }
     }
 
     pub fn clear(&mut self, clear_color: &Color) {
         self.pixels.fill(*clear_color);
-
-        // Reset depth buffer
         self.depth_buffer.fill(f32::INFINITY);
     }
 
@@ -37,12 +35,13 @@ impl Screen {
         if depth < 0.0 {
             return;
         }
-        let index = pp.y * SCREEN_WIDTH + pp.x;
-        if depth < self.depth_buffer[index] {
-            let processed_pp = shader.process(pp, &triangle);
-            if processed_pp.color.a > 0 {
-                self.pixels[index] = processed_pp.color;
-                self.depth_buffer[index] = depth;
+        let pixel_depth = self.depth_buffer[pp.y * SCREEN_WIDTH + pp.x];
+        if depth < pixel_depth {
+            let mut pp = pp.clone();
+            shader.process(&mut pp, &triangle);
+            if pp.color.a > 0 {
+                self.pixels[pp.y * SCREEN_WIDTH + pp.x] = pp.color;
+                self.depth_buffer[pp.y * SCREEN_WIDTH + pp.x] = depth
             }
         }
     }

@@ -1,5 +1,19 @@
 use crate::{
-    camera::Camera, color::Color, draw_list::DrawList, dummy_passthru_shader::DummyPassthruShader, even_line_missing_shader::EvenLineMissingShader, game::Game, input_handler::InputHandler, key_event::KeyEvent, mouse_event::MouseEvent, pixel_shader::{SuperShader, TexturedRainbowShader}, screen::Screen, triangle::Triangle, vec2::Vector2, vec3::Vector3
+    camera::Camera,
+    color::Color,
+    dither_shader::DitherShader,
+    draw_list::DrawList,
+    dummy_passthru_shader::DummyPassthruShader,
+    even_line_missing_shader::EvenLineMissingShader,
+    game::Game,
+    input_handler::InputHandler,
+    key_event::KeyEvent,
+    mouse_event::MouseEvent,
+    pixel_shader::{SuperShader, TexturedRainbowShader},
+    screen::Screen,
+    triangle::Triangle,
+    vec2::Vector2,
+    vec3::Vector3
 };
 
 pub struct TestGame {
@@ -48,9 +62,9 @@ impl Game for TestGame {
     }
 
     fn render_tick(&self, screen: &mut Screen) {
-        screen.clear(&Color::new(0, 0, 0, 0));
+        screen.clear(&Color::new(0, 190, 255, 255));
         let sh = DummyPassthruShader;
-        // Create a 2x3 floor at height 0
+
         let floor_tris = Triangle::create_floor_rect(
             Vector2::new(-1.0, -1.5),
             Vector2::new(1.0, 1.5),
@@ -93,11 +107,9 @@ impl Game for TestGame {
 
         draw_list.add(&wall2_tris);
 
-        //let elm_sh = EvenLineMissingShader;
-
         let super_shader = SuperShader::new(vec![
             Box::new(EvenLineMissingShader),
-            //Box::new(TexturedRainbowShader::new(5.0)),
+            Box::new(DitherShader),
         ]);
 
         let mut elm_dl = DrawList::new();
@@ -115,11 +127,12 @@ impl Game for TestGame {
 
     fn key_event(&mut self, key_ev: &KeyEvent) {
         self.input.handle_key_event(&key_ev);
+
+        
     }
     
     fn mouse_event(&mut self, mouse_ev: &MouseEvent) {
         self.input.handle_mouse_event(&mouse_ev);
-        
 
         if self.input.mouse_left.pressed {
             self.cam.first_person_look(&self.input.mouse_delta)

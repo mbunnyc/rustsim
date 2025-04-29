@@ -52,7 +52,7 @@ impl Vector3 {
         )
     }
 
-    pub fn normalize(&mut self) -> Vector3 {
+    /*pub fn normalize(&mut self) -> Vector3 {
         let len = self.length();
         if len > 0.0001 {
             self.x /= len;
@@ -60,7 +60,7 @@ impl Vector3 {
             self.z /= len;
         }
         Vector3::new(self.x, self.y, self.z)
-    }
+    }*/
 
     pub fn dot(a: &Vector3, b: &Vector3) -> f32 {
         a.x * b.x + a.y * b.y + a.z * b.z

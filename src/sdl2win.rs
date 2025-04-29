@@ -27,6 +27,8 @@ impl Window for SDL2Window {
         let mut event_pump = sdl_context.event_pump().unwrap();
 
         'running: loop {
+            let frame_start = std::time::Instant::now();
+
             for event in event_pump.poll_iter() {
                 use sdl2::event::Event;
 
@@ -94,8 +96,7 @@ impl Window for SDL2Window {
                 .with_lock(None, |pixels: &mut [u8], pitch: usize| {
                     for y in 0..SCREEN_HEIGHT {
                         for x in 0..SCREEN_WIDTH {
-                            let i = y * SCREEN_WIDTH + x;
-                            let col = screen.pixels[i];
+                            let col = screen.pixels[y * SCREEN_WIDTH + x];
                             let offset = y * pitch + x * 4;
                             pixels[offset] = col.b;
                             pixels[offset + 1] = col.g;
@@ -121,7 +122,11 @@ impl Window for SDL2Window {
                 .unwrap();
             canvas.present();
 
-            std::thread::sleep(std::time::Duration::from_millis(8));
+            let frame_time = frame_start.elapsed();
+            let target_frame_time = std::time::Duration::from_secs_f64(1.0 / 60.0);
+            if frame_time < target_frame_time {
+                std::thread::sleep(target_frame_time - frame_time);
+            }
         }
     }
 }
