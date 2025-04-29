@@ -74,3 +74,39 @@ impl PixelShader for TexturedRainbowShader {
         }
     }
 }
+
+pub struct DepthFogShader {
+    fog_color: Color,
+    fog_start: f32,
+    fog_end: f32,
+}
+
+impl DepthFogShader {
+    pub fn new(fog_color: Color, fog_start: f32, fog_end: f32) -> Self {
+        DepthFogShader {
+            fog_color,
+            fog_start,
+            fog_end,
+        }
+    }
+}
+
+impl PixelShader for DepthFogShader {
+    fn process(&self, pp: &mut PixelPlacement, _triangle: &Triangle) {
+        if pp.color.a == 0 {
+            return;
+        }
+
+        // Calculate fog factor based on depth
+        let fog_factor = ((pp.depth - self.fog_start) / (self.fog_end - self.fog_start))
+            .clamp(0.0, 1.0);
+
+        // Linearly interpolate between pixel color and fog color
+        pp.color = Color {
+            r: ((1.0 - fog_factor) * pp.color.r as f32 + fog_factor * self.fog_color.r as f32) as u8,
+            g: ((1.0 - fog_factor) * pp.color.g as f32 + fog_factor * self.fog_color.g as f32) as u8,
+            b: ((1.0 - fog_factor) * pp.color.b as f32 + fog_factor * self.fog_color.b as f32) as u8,
+            a: pp.color.a,
+        };
+    }
+}

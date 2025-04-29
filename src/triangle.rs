@@ -142,8 +142,8 @@ impl Triangle {
                         alpha * self.v1.pos.z + beta * self.v2.pos.z + gamma * self.v3.pos.z;
 
                     let color = self.interpolate_color(alpha, beta, gamma);
-                    let pixel = PixelPlacement { x, y, color };
-                    screen.draw_pixel(&pixel, shader, depth, &self);
+                    let pixel = PixelPlacement { x, y, color, depth };
+                    screen.draw_pixel(&pixel, shader,&self);
                 }
             }
         }
