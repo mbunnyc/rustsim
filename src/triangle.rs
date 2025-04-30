@@ -16,6 +16,42 @@ impl Triangle {
         Self { v1, v2, v3 }
     }
 
+    pub fn create_3d_line(
+        start: &Vector3,
+        end: &Vector3,
+        camera: &Camera,
+        start_color: &Color,
+        end_color: &Color,
+        thickness: f32,
+    ) -> Vec<Triangle> {
+        // Get camera right vector for billboarding
+        let forward = Vector3::normalize_v(&(camera.pointing_at - camera.pos));
+        let right = Vector3::normalize_v(&forward.cross(&Vector3::new(0.0, 1.0, 0.0)));
+        
+        // Calculate half-thickness offset vector
+        let half_thickness = thickness * 0.5;
+        let offset = Vector3::scale(&right, half_thickness);
+
+        // Calculate the four corners of the line quad
+        let start_left = Vector3::subtract(start, &offset);
+        let start_right = Vector3::add(start, &offset);
+        let end_left = Vector3::subtract(end, &offset);
+        let end_right = Vector3::add(end, &offset);
+
+        // Create two triangles with color gradient
+        vec![
+            Triangle::new(
+                Vertex::new(&start_right, &Vector2::new(1.0, 0.0), start_color),
+                Vertex::new(&end_left, &Vector2::new(0.0, 1.0), end_color),
+                Vertex::new(&end_right, &Vector2::new(1.0, 1.0), end_color),
+            ),
+            Triangle::new(
+                Vertex::new(&start_right, &Vector2::new(1.0, 0.0), start_color),
+                Vertex::new(&start_left, &Vector2::new(0.0, 0.0), start_color),
+                Vertex::new(&end_left, &Vector2::new(0.0, 1.0), end_color),
+            ),
+        ]
+    }    
     /*pub fn z_at(&self, x: f32, y: f32) -> f32 {
         let v1 = &self.v1.pos;
         let v2 = &self.v2.pos;

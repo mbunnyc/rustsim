@@ -43,6 +43,10 @@ impl Vector3 {
         Self { x, y, z }
     }
 
+    pub fn scale(&self, s: f32) -> Vector3 {
+        Vector3::new(self.x * s, self.y * s, self.z * s)
+    }
+
     pub fn add(a: &Vector3, b: &Vector3) -> Vector3 {
         Vector3::new(a.x + b.x, a.y + b.y, a.z + b.z)
     }

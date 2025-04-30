@@ -134,7 +134,23 @@ impl Game for TestGame {
 
         let mut big_floor_dl = DrawList::new();
         big_floor_dl.add(&big_floor);
-        big_floor_dl.draw(screen, &self.cam, &sh);            
+        big_floor_dl.draw(screen, &self.cam, &sh);    
+
+        let start = Vector3::new(0.0, 10.0, 0.0);
+        let end = Vector3::new(0.0, 0.0, 0.0);
+        let line_tris = Triangle::create_3d_line(
+            &start,
+            &end,
+            &self.cam,
+            &Color::new(255, 0, 0, 255),  // Start color (red)
+            &Color::new(255, 0, 0, 255),  // End color (red)
+            0.1  // Line thickness
+        );
+
+        // Create a draw list for the line
+        let mut line_dl = DrawList::new();
+        line_dl.add(&line_tris);
+        line_dl.draw(screen, &self.cam, &sh);
 }
 
     fn key_event(&mut self, key_ev: &KeyEvent) {
@@ -147,10 +163,10 @@ impl Game for TestGame {
         self.input.handle_mouse_event(&mouse_ev);
 
         let screen_res = Vector2::new(SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32);
-        if self.input.mouse_left.pressed {
+        /*if self.input.mouse_left.pressed {
             self.cam.first_person_look(&self.input.mouse_delta, &screen_res)
-        }
-        if self.input.mouse_right.pressed {
+        }*/
+        if self.input.mouse_left/*_right*/.pressed {
             self.cam.drag_move(&self.input.mouse_pos_last, &self.input.mouse_pos, &screen_res)
         }
 

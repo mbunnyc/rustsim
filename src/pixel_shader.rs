@@ -16,9 +16,8 @@ impl SuperShader {
 
 impl PixelShader for SuperShader {
     fn process(&self, pp: &mut PixelPlacement, triangle: &Triangle) {
-        let mut result = pp.clone();
         for shader in &self.child_shaders {
-            shader.process(&mut result, triangle);
+            shader.process(pp, triangle);
         }
     }
 }
