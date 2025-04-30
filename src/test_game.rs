@@ -146,11 +146,16 @@ impl Game for TestGame {
     fn mouse_event(&mut self, mouse_ev: &MouseEvent) {
         self.input.handle_mouse_event(&mouse_ev);
 
+        let screen_res = Vector2::new(SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32);
         if self.input.mouse_left.pressed {
-            self.cam.first_person_look(&self.input.mouse_delta)            
+            self.cam.first_person_look(&self.input.mouse_delta, &screen_res)
         }
         if self.input.mouse_right.pressed {
-            self.cam.drag_move(&self.input.mouse_pos_last, &self.input.mouse_pos)
+            self.cam.drag_move(&self.input.mouse_pos_last, &self.input.mouse_pos, &screen_res)
+        }
+
+        if self.input.scroll_y != 0 {
+            self.cam.zoom(self.input.scroll_y as f32)
         }
     }
 }

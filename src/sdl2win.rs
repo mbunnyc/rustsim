@@ -85,6 +85,9 @@ impl Window for SDL2Window {
                             y: y as u32,
                         });
                     }
+                    Event::MouseWheel { timestamp: _, window_id:_, which:_, x:_, y, direction:_, precise_x:_, precise_y:_ } => {
+                        game.mouse_event(&&MouseEvent::WheelScroll { y });
+                    }
                     _ => {}
                 }
             }

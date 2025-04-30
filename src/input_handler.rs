@@ -23,6 +23,7 @@ pub struct InputHandler {
     pub mouse_pos_last: Vector2,
     pub mouse_delta: Vector2,
     pub mouse_pos_on_click: Vector2,
+    pub scroll_y: i32,
 }
 
 //get more useful input from events
@@ -46,6 +47,7 @@ impl InputHandler {
             mouse_pos_last: Vector2::new(0.0, 0.0),
             mouse_delta: Vector2::new(0.0, 0.0),
             mouse_pos_on_click: Vector2::new(0.0, 0.0),
+            scroll_y: 0,
         }
     }
 
@@ -58,6 +60,7 @@ impl InputHandler {
         self.mouse_middle.released = false;
         self.mouse_delta.x = self.mouse_pos.x - self.mouse_pos_last.x;
         self.mouse_delta.y = self.mouse_pos.y - self.mouse_pos_last.y;
+        self.scroll_y = 0;
     }
 
     pub fn handle_key_event(&mut self, key_ev: &KeyEvent) {
@@ -145,6 +148,9 @@ impl InputHandler {
                 self.mouse_pos_last.y = self.mouse_pos.y;
                 self.mouse_pos.x = (*x as f32).clamp(0.0, SCREEN_WIDTH as f32);
                 self.mouse_pos.y = (*y as f32).clamp(0.0, SCREEN_HEIGHT as f32);
+            }
+            MouseEvent::WheelScroll { y } => {
+                self.scroll_y = if *y > 0 { 1 } else if *y < 0 { -1 } else { 0 };
             }
         }
     }
