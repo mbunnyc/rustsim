@@ -42,7 +42,7 @@ impl Camera {
         self.pos = self.pos + movement;
         self.pointing_at = self.pointing_at + movement;
     }
-    pub fn first_person_look(&mut self, mouse_delta: &Vector2, screen_res: &Vector2) {
+    /*pub fn first_person_look(&mut self, mouse_delta: &Vector2, screen_res: &Vector2) {
         // Simple first person camera control - rotate around current position based on mouse movement
         let base_sensitivity = -0.003; // Base sensitivity value
         let sensitivity = base_sensitivity * (screen_res.x.max(screen_res.y) / 1000.0); // Scale by screen resolution
@@ -64,7 +64,7 @@ impl Camera {
         );
         
         // Rotate direction around right vector for pitch
-        let right = direction.cross(&Vector3::new(0.0, 1.0, 0.0)).normalize_v();
+        //let right = direction.cross(&Vector3::new(0.0, 1.0, 0.0)).normalize_v();
         let cos_pitch = pitch.cos();
         let sin_pitch = pitch.sin();
         direction = Vector3::new(
@@ -75,5 +75,5 @@ impl Camera {
         
         // Update pointing_at based on rotated direction
         self.pointing_at = self.pos + direction;
-    }
+    }*/
 }

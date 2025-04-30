@@ -1,5 +1,5 @@
 use crate::{
-    camera::Camera, color::{Color, WHITE}, pixel_placement::PixelPlacement, pixel_shader::{DepthFogShader, PixelShader},
+    camera::Camera, color::Color, pixel_placement::PixelPlacement, pixel_shader::{DepthFogShader, PixelShader},
     triangle::Triangle,
 };
 

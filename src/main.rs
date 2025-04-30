@@ -1,8 +1,11 @@
+#![allow(warnings)]
+
 use screen::Screen;
 use sdl2win::SDL2Window;
 use test_game::TestGame;
 use window::Window;
 
+mod triangle_gen;
 mod input_handler;
 mod texture;
 mod camera;

@@ -3,7 +3,7 @@ use crate::{pixel_placement::PixelPlacement, pixel_shader::PixelShader, triangle
 pub struct DummyPassthruShader;
 
 impl PixelShader for DummyPassthruShader {
-    fn process(&self, pp: &mut PixelPlacement, _triangle: &Triangle) {
+    fn process(&self, _pp: &mut PixelPlacement, _triangle: &Triangle) {
         
     }
 }

@@ -12,6 +12,7 @@ use crate::{
     pixel_shader::{SuperShader, TexturedRainbowShader},
     screen::{Screen, SCREEN_HEIGHT, SCREEN_WIDTH},
     triangle::Triangle,
+    triangle_gen::TriangleGen,
     vec2::Vector2,
     vec3::Vector3
 };
@@ -65,21 +66,21 @@ impl Game for TestGame {
         screen.clear(&Color::new(0, 190, 255, 255));
         let sh = DummyPassthruShader;
 
-        let floor_tris = Triangle::create_floor_rect(
+        let floor_tris = TriangleGen::create_floor_rect(
             Vector2::new(-1.0, -1.5),
             Vector2::new(1.0, 1.5),
             0.0,
             Color::new(128, 128, 0, 255),
         );
 
-        let floor2_tris = Triangle::create_floor_rect(
+        let floor2_tris = TriangleGen::create_floor_rect(
             Vector2::new(-1.0, -1.5),
             Vector2::new(1.0, 1.5),
             1.5,
             Color::new(10, 128, 50, 255),
         );
 
-        let wall1_tris = Triangle::create_wall(
+        let wall1_tris = TriangleGen::create_wall(
             &Vector3 {
                 x: -1.0,
                 y: 0.0,
@@ -93,7 +94,7 @@ impl Game for TestGame {
 
         let mut draw_list = DrawList::new();
 
-        let wall2_tris = Triangle::create_wall(
+        let wall2_tris = TriangleGen::create_wall(
             &Vector3 {
                 x: -1.0,
                 y: 0.0,
@@ -109,7 +110,7 @@ impl Game for TestGame {
 
         let super_shader = SuperShader::new(vec![
             Box::new(EvenLineMissingShader),
-            //Box::new(DitherShader),
+            Box::new(DitherShader),
         ]);
 
         let mut elm_dl = DrawList::new();
@@ -125,7 +126,7 @@ impl Game for TestGame {
         draw_list.draw(screen, &self.cam, &self.dith_sh);
 
         // Add this to the render_tick method
-        let big_floor = Triangle::create_floor_rect(
+        let big_floor = TriangleGen::create_floor_rect(
             Vector2::new(-50.0, -50.0),
             Vector2::new(100.0, 100.0), 
             -5.0,
@@ -138,7 +139,7 @@ impl Game for TestGame {
 
         let start = Vector3::new(0.0, 10.0, 0.0);
         let end = Vector3::new(0.0, 0.0, 0.0);
-        let line_tris = Triangle::create_3d_line(
+        let line_tris = TriangleGen::create_3d_line(
             &start,
             &end,
             &self.cam,
