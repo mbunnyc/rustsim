@@ -1,39 +1,26 @@
 use crate::{
-    camera::Camera,
-    color::Color,
-    dither_shader::DitherShader,
-    draw_list::DrawList,
-    dummy_passthru_shader::DummyPassthruShader,
-    even_line_missing_shader::EvenLineMissingShader,
-    game::Game,
-    input_handler::InputHandler,
-    key_event::KeyEvent,
-    mouse_event::MouseEvent,
-    pixel_shader::{SuperShader, TexturedRainbowShader},
-    screen::{Screen, SCREEN_HEIGHT, SCREEN_WIDTH},
-    triangle::Triangle,
-    triangle_gen::TriangleGen,
-    vec2::Vector2,
-    vec3::Vector3
+    camera::Camera, color::Color, dither_shader::DitherShader, draw_list::DrawList, dummy_passthru_shader::DummyPassthruShader, even_line_missing_shader::EvenLineMissingShader, game::Game, input_handler::InputHandler, key_event::KeyEvent, mouse_event::MouseEvent, pixel_shader::{SuperShader, TexturedRainbowShader}, screen::{Screen, SCREEN_HEIGHT, SCREEN_WIDTH}, texture::Texture, triangle_gen::TriangleGen, vec2::Vector2, vec3::Vector3
 };
 
-pub struct TestGame {
+pub struct Nameless3DThing {
     pub cam: Camera,
     pub input: InputHandler,
     dith_sh: TexturedRainbowShader,
+    tex: Texture,
 }
 
-impl TestGame {
+impl Nameless3DThing {
     pub fn new() -> Self {
-        TestGame {
+        Nameless3DThing {
             cam: Camera::new(),
             input: InputHandler::new(),
             dith_sh: TexturedRainbowShader::new(5.0),
+            tex: Texture::new(100, 100),
         }
     }
 }
 
-impl Game for TestGame {
+impl Game for Nameless3DThing {
     fn update_tick(&mut self) {
         self.input.new_frame();
 
@@ -117,13 +104,13 @@ impl Game for TestGame {
         elm_dl.add(&floor2_tris);
         elm_dl.add(&wall1_tris);
 
-        elm_dl.draw(screen, &self.cam, &super_shader);
+        elm_dl.draw(screen, &self.cam, &super_shader, &self.tex);
 
         let mut sh_dl = DrawList::new();
         sh_dl.add(&floor_tris);
-        sh_dl.draw(screen, &self.cam, &sh);
+        sh_dl.draw(screen, &self.cam, &sh, &self.tex);
 
-        draw_list.draw(screen, &self.cam, &self.dith_sh);
+        draw_list.draw(screen, &self.cam, &self.dith_sh, &self.tex);
 
         // Add this to the render_tick method
         let big_floor = TriangleGen::create_floor_rect(
@@ -135,7 +122,7 @@ impl Game for TestGame {
 
         let mut big_floor_dl = DrawList::new();
         big_floor_dl.add(&big_floor);
-        big_floor_dl.draw(screen, &self.cam, &sh);    
+        big_floor_dl.draw(screen, &self.cam, &sh, &self.tex);
 
         let start = Vector3::new(0.0, 10.0, 0.0);
         let end = Vector3::new(0.0, 0.0, 0.0);
@@ -151,7 +138,7 @@ impl Game for TestGame {
         // Create a draw list for the line
         let mut line_dl = DrawList::new();
         line_dl.add(&line_tris);
-        line_dl.draw(screen, &self.cam, &sh);
+        line_dl.draw(screen, &self.cam, &sh, &self.tex);
 }
 
     fn key_event(&mut self, key_ev: &KeyEvent) {

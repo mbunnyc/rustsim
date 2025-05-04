@@ -1,4 +1,4 @@
-use crate::{camera::Camera, pixel_shader::PixelShader, screen::Screen, triangle::Triangle};
+use crate::{camera::Camera, pixel_shader::PixelShader, screen::Screen, texture::Texture, triangle::Triangle};
 
 pub struct DrawList {
     triangles: Vec<Triangle>,
@@ -14,9 +14,9 @@ impl DrawList {
         }
     }
 
-    pub fn draw(&self, screen: &mut Screen, cam: &Camera, shader: &dyn PixelShader) {
+    pub fn draw(&self, screen: &mut Screen, cam: &Camera, shader: &dyn PixelShader, texture: &Texture) {
         for triangle in &self.triangles {
-            screen.draw_triangle(&triangle, &cam, shader);
+            screen.draw_triangle(&triangle, &cam, shader, texture);
         }
     }
 }

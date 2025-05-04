@@ -1,4 +1,5 @@
 use crate::screen::{SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::texture::Texture;
 use crate::{
     camera::Camera, color::Color, pixel_placement::PixelPlacement, pixel_shader::PixelShader,
     screen::Screen, vec2::Vector2, vec3::Vector3, vertex::Vertex,
@@ -29,7 +30,7 @@ impl Triangle {
         a * v1.y + b * v2.y + c * v3.y
     }*/
         
-    pub fn fill(&self, screen: &mut Screen, shader: &dyn PixelShader) {
+    pub fn fill(&self, screen: &mut Screen, shader: &dyn PixelShader, texture: &Texture) {
         let min_x = self.v1.pos.x.min(self.v2.pos.x).min(self.v3.pos.x).floor() as usize;
         let max_x = self.v1.pos.x.max(self.v2.pos.x).max(self.v3.pos.x).ceil() as usize;
         let min_y = self.v1.pos.y.min(self.v2.pos.y).min(self.v3.pos.y).floor() as usize;
@@ -96,10 +97,10 @@ impl Triangle {
         Color { r, g, b, a: 255 }
     }
 
-    pub fn project_and_fill(&self, screen: &mut Screen, camera: &Camera, shader: &dyn PixelShader) {
+    pub fn project_and_fill(&self, screen: &mut Screen, camera: &Camera, shader: &dyn PixelShader, texture: &Texture) {
         let projected_triangle = self.with_applied_perspective(camera, SCREEN_WIDTH, SCREEN_HEIGHT);
         if let Some(triangle) = projected_triangle {
-            triangle.fill(screen, shader);
+            triangle.fill(screen, shader, texture);
         }
     }
 

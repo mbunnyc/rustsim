@@ -1,6 +1,5 @@
 use crate::{
-    camera::Camera, color::Color, pixel_placement::PixelPlacement, pixel_shader::{DepthFogShader, PixelShader},
-    triangle::Triangle,
+    camera::Camera, color::Color, pixel_placement::PixelPlacement, pixel_shader::{DepthFogShader, PixelShader}, texture::Texture, triangle::Triangle
 };
 
 pub const SCREEN_WIDTH: usize = 640;
@@ -48,7 +47,7 @@ impl Screen {
         }
     }
 
-    pub fn draw_triangle(&mut self, tri: &Triangle, cam: &Camera, shader: &dyn PixelShader) {
-        tri.project_and_fill(self, cam, shader);
+    pub fn draw_triangle(&mut self, tri: &Triangle, cam: &Camera, shader: &dyn PixelShader, texture: &Texture) {
+        tri.project_and_fill(self, cam, shader, texture);
     }
 }

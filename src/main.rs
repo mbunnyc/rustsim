@@ -1,8 +1,8 @@
-#![allow(warnings)]
+//#![allow(warnings)]
 
 use screen::Screen;
 use sdl2win::SDL2Window;
-use test_game::TestGame;
+use nameless_3d_game::Nameless3DThing;
 use window::Window;
 
 mod triangle_gen;
@@ -25,7 +25,7 @@ mod pixel_shader;
 mod rect;
 mod screen;
 mod sdl2win;
-mod test_game;
+mod nameless_3d_game;
 mod triangle;
 mod vec2;
 mod vec3;
@@ -35,6 +35,6 @@ mod window;
 fn main() {
     let mut screen = Screen::new();
     let win = SDL2Window;
-    let mut game = TestGame::new();
+    let mut game = Nameless3DThing::new();
     win.start(&mut screen, &mut game);
 }
